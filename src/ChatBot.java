@@ -16,12 +16,12 @@ class ChatBot {
                 return "Когда ты загадаешь число и начнёшь игру, я буду предлагать разные варианты.\nЕсли твоё число" +
                         "больше моего, ответь \"больше\", если меньше - \"меньше\". Если было названо верное число, " +
                         "напиши \"угадал\".\nСтарт игры - команда \"старт\", остановка - \"стоп\". " +
-						"Максимальное число в игре - 100";
+						"Максимальное число в игре - 100, минимальное - 0";
             case "стоп":
             	if (!gameActive) 
             		return gameNotActive;
 				gameActive = false;
-				return "Команда не распознана. Попробуй ещё раз.";
+				return "Команда не распознана. Попробуй ещё раз или воспользуйся помощью.";
             case "больше":
             case ">":
             case "меньше":
@@ -33,7 +33,7 @@ class ChatBot {
 					guessNumber = request.equals("больше") || request.equals(">") ?
 							currentGame.generateNewRequest(NumberIs.BIGGER) :
 							currentGame.generateNewRequest(NumberIs.SMALLER);
-					answer = String.format("Может, это %d?", guessNumber);
+					answer = String.format("Может, это: %d?", guessNumber);
             	}
             	catch(BorderException e) {
             		answer = "Ты меня обманываешь";
