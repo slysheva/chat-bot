@@ -18,15 +18,16 @@ class ChatBot {
                         "напиши \"угадал\".\nСтарт игры - команда \"старт\", остановка - \"стоп\". " +
 						"Максимальное число в игре - 100";
             case "стоп":
-            	if (!gameActive) return gameNotActive;
-
+            	if (!gameActive) 
+            		return gameNotActive;
 				gameActive = false;
 				return "Команда не распознана. Попробуй ещё раз.";
             case "больше":
             case ">":
             case "меньше":
             case "<":
-	            if (!gameActive) return gameNotActive;
+	            if (!gameActive) 
+	            	return gameNotActive;
 	            String answer = "";
 	            try {
 					guessNumber = request.equals("больше") || request.equals(">") ?
@@ -36,11 +37,12 @@ class ChatBot {
             	}
             	catch(BorderException e) {
             		answer = "Ты меня обманываешь";
+            		gameActive = false;
             	}
 	            return answer;
             case "угадал":
-            	if (!gameActive) return gameNotActive;
-
+            	if (!gameActive)
+            		return gameNotActive;            	
 				gameActive = false;
 				return "Ура! Игра закончена. Для продолжения введи следующую команду.";
             default:
