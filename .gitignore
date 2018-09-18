@@ -51,5 +51,8 @@ hs_err_pid*
 # IntelliJ
 out/
 
-# Cache
+# Caches and binaries
 .settings/
+bin/
+src/.project
+src/.classpath
