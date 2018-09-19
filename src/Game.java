@@ -6,7 +6,7 @@ class Game {
 	
 	Game()
 	{
-		leftBorder = 0;
+		leftBorder = -1;
 		rightBorder =  101;
 		middle = (leftBorder + rightBorder) / 2;
 	}
