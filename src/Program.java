@@ -1,17 +1,15 @@
 import java.util.Scanner;
 
 public class Program {
-	public static void main(String[] args) throws SecurityException, IllegalArgumentException {
-		ChatBot chatBot = new ChatBot();
+	public static void main(String[] args) {
 		Scanner sc = new Scanner(System.in);
-		System.out.println("Привет! Я поиграю с тобой в игру \"Угадай число\". Загадай какое-нибудь целое число " +
-                "до 100 и напиши команду \"старт\".\nОстановить игру можно командой \"стоп\". Команда \"о игре\" " +
-                "выведет правила на экран.");
+		ChatBot bot = new ChatBot(new GameFactory());
 
-		while(true)
+        //noinspection InfiniteLoopStatement
+        while (true)
 		{
 			String request = sc.nextLine();
-			System.out.println(chatBot.Answer(request));
+			System.out.println(bot.Answer(request));
 		}
 	}
 }

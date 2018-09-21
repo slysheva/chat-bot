@@ -1,3 +1,4 @@
+import static com.sun.tools.internal.ws.wsdl.parser.Util.fail;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
@@ -13,11 +14,11 @@ class Tests
 	@Test
 	void testBinSearch() 
 	{
-		ChatBot chatBot = new ChatBot();
+		ChatBot bot = new ChatBot(new GameFactory());
 		int[] testCases = {100, 99, 1, 0};
 		for (int x : testCases) 
 		{
-			String botAnswer = chatBot.Answer("старт");
+			String botAnswer = bot.Answer("старт");
 			int guessNumber;
 			do
 			{
@@ -25,9 +26,9 @@ class Tests
 					fail("Expected guessing number");
 				guessNumber = extractNumber(botAnswer);
 				if (guessNumber > x) 
-					botAnswer = chatBot.Answer("<");
+					botAnswer = bot.Answer("<");
 				else
-					botAnswer = chatBot.Answer(">");
+					botAnswer = bot.Answer(">");
 				
 			} while(x != guessNumber);	
 		}
@@ -36,21 +37,21 @@ class Tests
 	@Test
 	void badNumber() 
 	{
-		ChatBot chatBot = new ChatBot();
-		String botAnswer = chatBot.Answer("старт");
+		ChatBot bot = new ChatBot(new GameFactory());
+		String botAnswer = bot.Answer("старт");
 		do
 		{
 			if (botAnswer.charAt(0) != 'И' && botAnswer.charAt(0) != 'М')
 				fail("Expected guessing number");
-			botAnswer = chatBot.Answer("<");
+			botAnswer = bot.Answer("<");
 		} while(!botAnswer.equals("Ты меня обманываешь"));
 	}
 
 	@Test
 	void badCommand()
 	{
-		ChatBot chatBot = new ChatBot();
-		String botAnswer = chatBot.Answer("ла-ла-ла");
+		ChatBot bot = new ChatBot(new GameFactory());
+		String botAnswer = bot.Answer("ла-ла-ла");
 		assertEquals("Команда не распознана. Попробуй ещё раз или воспользуйся помощью.", botAnswer);
 	}
 	

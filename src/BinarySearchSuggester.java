@@ -1,10 +1,10 @@
 
-class Game {
+class BinarySearchSuggester {
 	private int leftBorder;
 	private int rightBorder;
 	int middle;
 	
-	Game()
+	BinarySearchSuggester()
 	{
 		leftBorder = -1;
 		rightBorder =  101;
@@ -26,7 +26,7 @@ class Game {
 
 class BorderException extends Exception{
 
-	public BorderException(String message){
+	BorderException(String message){
         super(message);
     }
 }
