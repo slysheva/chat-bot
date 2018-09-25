@@ -30,7 +30,7 @@ class Tests
 					botAnswer = bot.Answer(">");
 				
 			} while(x != guessNumber);	
-			botAnswer = bot.Answer("стоп");
+			bot.Answer("стоп");
 		}
 	}	
 	
