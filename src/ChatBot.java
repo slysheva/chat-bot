@@ -7,22 +7,29 @@ class ChatBot {
         gameInstance = gameFactory.create();
     }
 
-    String answer(String message) {
+    ChatBotReply answer(String message) {
         switch (message) {
-            case "старт":
+            case "/start":
+            case "Старт":
                 if (!gameInstance.isActive()) {
                     gameInstance = gameFactory.create();
                     gameInstance.markActive();
-                    return gameInstance.getInitialMessage();
+                    ChatBotReply firstQuestion = gameInstance.proceedRequest("");
+                    return new ChatBotReply(gameInstance.getInitialMessage() +
+                            '\n' + firstQuestion.message, firstQuestion.keyboardOptions);
                 }
-                return "Игра уже идёт.";
-            case "стоп":
+                return new ChatBotReply("Игра уже идёт.", null);
+            case "/stop":
+            case "Стоп":
                 if (!gameInstance.isActive())
-                    return "Игра ещё не началась.";
+                    return new ChatBotReply("Игра ещё не началась.", null);
                 gameInstance.markInactive();
-                return "Игра закончена.";
+                return new ChatBotReply("Игра закончена.", null);
             default:
-                return gameInstance.proceedRequest(message);
+                if (gameInstance.isActive())
+                    return gameInstance.proceedRequest(message);
+                else
+                    return new ChatBotReply("Игра ещё не началась.", null);
         }
     }
 }
