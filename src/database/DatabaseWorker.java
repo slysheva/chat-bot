@@ -1,7 +1,7 @@
 package database;
 
 import java.sql.*;
-import java.util.Arrays;
+import java.util.Objects;
 
 public class DatabaseWorker {
     private Connection c;
@@ -56,27 +56,21 @@ public class DatabaseWorker {
             if (c.isClosed())
                 reconnect();
 
-            Statement stmt = c.createStatement();
-            ResultSet rs = stmt.executeQuery(String.format("SELECT * FROM quiz WHERE id = %d;", userId));
+            PreparedStatement stmt = c.prepareStatement("SELECT * FROM quiz WHERE id = ?;");
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
 
-            int id = 0;
-            int currentQuestionId = 0;
-            Array answerStatistics = null;
-            Array answersOrder = null;
-            boolean gameActive = true;
+            rs.next();
+            int id = rs.getInt("id");
+            int currentQuestionId = rs.getInt("current_question_id");
+            Array answerStatistics = rs.getArray("answer_statistics");
+            Array answersOrder = rs.getArray("answers_order");
 
-            while (rs.next()) {
-                id = rs.getInt("id");
-                currentQuestionId = rs.getInt("current_question_id");
-                answerStatistics = rs.getArray("answer_statistics");
-                answersOrder = rs.getArray("answers_order");
-                gameActive = rs.getBoolean("game_active");
-            }
             rs.close();
             stmt.close();
             return new GameDataSet(id, currentQuestionId,
-                    (Integer[]) answerStatistics.getArray(),
-                    (Integer[]) answersOrder.getArray());
+                    (Integer[]) Objects.requireNonNull(answerStatistics).getArray(),
+                    (Integer[]) Objects.requireNonNull(answersOrder).getArray());
         }
         catch (SQLException e) {
             e.printStackTrace();
@@ -93,22 +87,26 @@ public class DatabaseWorker {
 
             destroyGameData(userId);
 
-            Statement stmt = c.createStatement();
-            String sql = String
-                    .format("INSERT INTO quiz VALUES(%d, %d, '%s', '%s', TRUE)",
-                        userData.userId, userData.currentQuestionId,
-                        Arrays.toString(userData.answerStatistics),
-                        Arrays.toString(userData.answersOrder))
-                    .replace('[', '{')
-                    .replace(']', '}');
-            stmt.executeUpdate(sql);
-
+            PreparedStatement stmt = c.prepareStatement("INSERT INTO quiz VALUES(?, ?, ?, ?, TRUE)");
+            stmt.setInt(1, userData.userId);
+            stmt.setInt(2, userData.currentQuestionId);
+            stmt.setArray(3, c.createArrayOf("integer", transformArray(userData.answerStatistics)));
+            stmt.setArray(4, c.createArrayOf("integer", transformArray(userData.answersOrder)));
+            stmt.executeUpdate();
             stmt.close();
         }
         catch (SQLException e) {
             e.printStackTrace();
             System.exit(1);
         }
+    }
+
+    private Integer[] transformArray(int[] array) {
+        Integer[] target = new Integer[array.length];
+        for (int i = 0; i < array.length; ++i) {
+            target[i] = array[i];
+        }
+        return target;
     }
 
     private void runSql (int userId, String query) {
@@ -116,10 +114,9 @@ public class DatabaseWorker {
             if (c.isClosed())
                 reconnect();
 
-            Statement stmt = c.createStatement();
-
-            String sql = String.format(query, userId);
-            stmt.executeUpdate(sql);
+            PreparedStatement stmt = c.prepareStatement(query);
+            stmt.setInt(1, userId);
+            stmt.executeUpdate();
             stmt.close();
         }
         catch (SQLException e) {
@@ -128,20 +125,21 @@ public class DatabaseWorker {
         }
     }
 
-    public void createGameData(int userId) {
-        runSql(userId, "INSERT INTO quiz VALUES(%d, 0, '{0,0,0,0,0,0}', '{0,1,2,3,4,5}', TRUE)");
+    private void createGameData(int userId) {
+        runSql(userId, "INSERT INTO quiz VALUES(?, 0, '{0,0,0,0,0,0}', '{0,1,2,3,4,5}', TRUE)");
     }
 
     public void markGameActive(int userId) {
-        runSql(userId, "UPDATE quiz SET game_active = TRUE WHERE id = %d");
+        destroyGameData(userId);
+        createGameData(userId);
     }
 
     public void markGameInactive(int userId) {
-        runSql(userId, "UPDATE quiz SET game_active = FALSE WHERE id = %d");
+        runSql(userId, "UPDATE quiz SET game_active = FALSE WHERE id = ?");
     }
 
-    public void destroyGameData(int userId) {
-        runSql(userId, "DELETE FROM quiz WHERE id = %d");
+    private void destroyGameData(int userId) {
+        runSql(userId, "DELETE FROM quiz WHERE id = ?");
     }
 
     public boolean isGameActive(int userId) {
@@ -149,16 +147,15 @@ public class DatabaseWorker {
             if (c.isClosed())
                 reconnect();
 
-            Statement stmt = c.createStatement();
-            boolean gameActive = true;
+            PreparedStatement stmt = c.prepareStatement("SELECT game_active FROM quiz WHERE id = ?;");
+            stmt.setInt(1, userId);
 
-            ResultSet rs = stmt.executeQuery(String.format("SELECT game_active FROM quiz WHERE id = %d;", userId));
-            while (rs.next()) {
-                gameActive = rs.getBoolean("game_active");
-            }
+            ResultSet rs = stmt.executeQuery();
+            rs.next();
+            boolean gameActive = rs.getBoolean("game_active");
+
             rs.close();
             stmt.close();
-
             return gameActive;
         }
         catch (SQLException e) {

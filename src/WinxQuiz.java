@@ -1,3 +1,4 @@
+import com.google.common.primitives.Ints;
 import database.DatabaseWorker;
 import database.GameDataSet;
 
@@ -8,10 +9,7 @@ import java.util.*;
 public class WinxQuiz implements IGame {
 	private ArrayList<QuizItem> quizSteps;
 	private int answersCount;
-	private int currentQuestionNumber;
-	private List<Integer> answerStatistic;
-	private final String[] characterOrder;
-	private List<Integer> answersOrder;
+	private String[] characterOrder;
 
 	private DatabaseWorker db = new DatabaseWorker();
 
@@ -20,36 +18,37 @@ public class WinxQuiz implements IGame {
 	    db.connect();
 	    db.initDatabase();
 		File file = new File(fileName);
-		Scanner sc = new Scanner(file); 
-		answersCount =  Integer.parseInt(sc.nextLine());
-		quizSteps = new ArrayList<>();
-		characterOrder = sc.nextLine().split(" ");
-	    parseFile(sc);
+		Scanner sc = new Scanner(file);
+		parseQuizRules(sc);
+		quizSteps = parseQuizSteps(sc);
+		sc.close();
 	}
 
-    private void parseFile(Scanner sc) {
+	private void parseQuizRules(Scanner sc) {
+		answersCount =  Integer.parseInt(sc.nextLine());
+		characterOrder = sc.nextLine().split(" ");
+	}
+
+    private ArrayList<QuizItem> parseQuizSteps(Scanner sc) {
+    	ArrayList<QuizItem> steps = new ArrayList<>();
+
         while (sc.hasNextLine())
         {
             String currentQuestion = sc.nextLine();
             ArrayList<Answer> currentAnswers = new ArrayList<>();
             for (int i = 0; i < answersCount; ++i)
                 currentAnswers.add(new Answer(sc.nextLine(), i));
-            quizSteps.add(new QuizItem(currentAnswers, currentQuestion));
+            steps.add(new QuizItem(currentAnswers, currentQuestion));
         }
+
+        return steps;
     }
 
-	private void getGameData(int userId) {
-        GameDataSet userData = db.getGameData(userId);
-        currentQuestionNumber = userData.currentQuestionId;
-        answerStatistic = new ArrayList<>();
-        for (int i = 0; i < userData.answerStatistics.length; ++i)
-            answerStatistic.add(userData.answerStatistics[i]);
-        answersOrder = new ArrayList<>();
-        for (int i = 0; i < userData.answersOrder.length; ++i)
-            answersOrder.add(userData.answersOrder[i]);
+	private GameDataSet getGameData(int userId) {
+        return db.getGameData(userId);
     }
 
-	private List<String> getAnswers(List<Integer> order)
+	private List<String> getAnswersList(int[] order, int currentQuestionNumber)
 	{
         List<Answer> questionAnswers = quizSteps.get(currentQuestionNumber - 1).answers;
 	    List<String> orderedAnswers = new ArrayList<>();
@@ -61,36 +60,43 @@ public class WinxQuiz implements IGame {
 		}
 		return orderedAnswers;
 	}
+
+	private void shuffleAnswers(int[] answers) {
+        Random rand = new Random();
+
+        for (int i = 0; i < answers.length; ++i) {
+            int position = rand.nextInt(answers.length);
+            int t = answers[i];
+            answers[i] = answers[position];
+            answers[position] = t;
+        }
+    }
 	
 	@Override
 	public ChatBotReply proceedRequest(String request, int userId) {
-        if (currentQuestionNumber == 0) {
-            db.destroyGameData(userId);
-            db.createGameData(userId);
-        }
+        GameDataSet gameData = getGameData(userId);
 
-        getGameData(userId);
-
-		if (currentQuestionNumber > answersCount)
+		if (gameData.currentQuestionId > answersCount)
 		{
 			markInactive(userId);
-			return new ChatBotReply(characterOrder[answerStatistic.indexOf(Collections.max(answerStatistic))],
-                    null);
+			return new ChatBotReply(characterOrder[Ints.indexOf(
+			        gameData.answerStatistics,
+                    Ints.max(gameData.answerStatistics))], null);
 		}
-		if (currentQuestionNumber > 0) {
+		if (gameData.currentQuestionId > 0) {
             final char firstAnswer = 'A';
             char firstLetter = request.charAt(0);
             if (firstLetter < 'A' || firstLetter > 'F')
-                return new ChatBotReply("Подумай ещё раз!", getAnswers(answersOrder));
-            int answerIndex = answersOrder.get(request.charAt(0) - firstAnswer);
-            answerStatistic.set(answerIndex, answerStatistic.get(answerIndex) + 1);
+                return new ChatBotReply("Подумай ещё раз!", getAnswersList(gameData.answersOrder, gameData.currentQuestionId));
+            int answerIndex = gameData.answersOrder[request.charAt(0) - firstAnswer];
+            gameData.answerStatistics[answerIndex]++;
         }
 
-        currentQuestionNumber++;
-		Collections.shuffle(answersOrder);
+        gameData.currentQuestionId++;
+		shuffleAnswers(gameData.answersOrder);
 
-		db.setGameData(userId, new GameDataSet(userId, currentQuestionNumber, answerStatistic, answersOrder));
-		return new ChatBotReply(quizSteps.get(currentQuestionNumber - 1).question, getAnswers(answersOrder));
+		db.setGameData(userId, gameData);
+		return new ChatBotReply(quizSteps.get(gameData.currentQuestionId - 1).question, getAnswersList(gameData.answersOrder, gameData.currentQuestionId));
 	}
 
 	@Override
@@ -110,7 +116,6 @@ public class WinxQuiz implements IGame {
 
 	@Override
 	public String getInitialMessage(int userId) {
-		markActive(userId);
 		return "Привет! Сейчас мы узнаем, кто ты из фей Winx.";
 	}
 }
