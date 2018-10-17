@@ -14,4 +14,9 @@ public class GameDataSet {
         this.answerStatistics = Arrays.stream(answerStatistics).mapToInt(Integer::intValue).toArray();
         this.answersOrder = Arrays.stream(answersOrder).mapToInt(Integer::intValue).toArray();
     }
+
+    public GameDataSet(int userId, int currentQuestionId) {
+        this.userId = userId;
+        this.currentQuestionId = currentQuestionId;
+    }
 }

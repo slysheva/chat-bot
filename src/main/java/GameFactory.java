@@ -4,7 +4,7 @@ public class GameFactory implements IGameFactory {
     @Override
     public IGame create() {
         try {
-            return new WinxQuiz("winx");
+            return new PixieQuiz("PixieTest.txt");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
