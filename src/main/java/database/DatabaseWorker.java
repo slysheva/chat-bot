@@ -59,14 +59,18 @@ public class DatabaseWorker {
 
             rs.next();
             int id = rs.getInt("id");
+
             int currentQuestionId = rs.getInt("current_question_id");
             Array answerStatistics = rs.getArray("answer_statistics");
             Array answersOrder = rs.getArray("answers_order");
 
             rs.close();
             stmt.close();
+            if (answerStatistics == null || answersOrder == null) {
+                return new GameDataSet(id, currentQuestionId);
+            }
             return new GameDataSet(id, currentQuestionId,
-                    (Integer[]) Objects.requireNonNull(answerStatistics).getArray(),
+                        (Integer[]) Objects.requireNonNull(answerStatistics).getArray(),
                     (Integer[]) Objects.requireNonNull(answersOrder).getArray());
         }
         catch (SQLException e) {
@@ -84,11 +88,18 @@ public class DatabaseWorker {
 
             destroyGameData(userId);
 
-            PreparedStatement stmt = c.prepareStatement("INSERT INTO quiz VALUES(?, ?, ?, ?, TRUE)");
+            PreparedStatement stmt;
+            if (userData.answerStatistics == null || userData.answersOrder == null) {
+                stmt = c.prepareStatement("INSERT INTO quiz (id, current_question_id, game_active) VALUES(?, ?, TRUE)");
+            }
+            else {
+                stmt = c.prepareStatement("INSERT INTO quiz VALUES(?, ?, ?, ?, TRUE)");
+                stmt.setArray(3, c.createArrayOf("integer", transformArray(userData.answerStatistics)));
+                stmt.setArray(4, c.createArrayOf("integer", transformArray(userData.answersOrder)));
+            }
             stmt.setInt(1, userData.userId);
             stmt.setInt(2, userData.currentQuestionId);
-            stmt.setArray(3, c.createArrayOf("integer", transformArray(userData.answerStatistics)));
-            stmt.setArray(4, c.createArrayOf("integer", transformArray(userData.answersOrder)));
+
             stmt.executeUpdate();
             stmt.close();
         }
