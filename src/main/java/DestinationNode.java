@@ -1,8 +1,8 @@
-public class DestinationNode {
+class DestinationNode {
     int Node;
     int Edge;
 
-    public DestinationNode(int node, int edge) {
+    DestinationNode(int node, int edge) {
         Node = node;
         Edge = edge;
     }
