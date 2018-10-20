@@ -44,7 +44,7 @@ public class PixieQuiz implements IGame {
         for (int i = 0; i < answersCount; ++i) {
             String answerOption = sc.nextLine();
             answerOptions.add(answerOption);
-            optionsIndex.put(answerOption, i);
+            optionsIndex.put(answerOption, i + 1);
             testGraph.add(new ArrayList<>());
         }
         for (int i = 0; i < answersCount; ++i) {
@@ -91,7 +91,7 @@ public class PixieQuiz implements IGame {
         if (testGraph.get(currentQuestionId).size() == 0) {
             markInactive(userId);
             return new ChatBotReply(String.format("Всё понятно. Твоя пикси %s",
-                    answerOptions.get(currentQuestionId)), null);
+                    questions.get(currentQuestionId)), null);
         }
         db.setGameData(userId, new GameDataSet(userId, currentQuestionId));
         return new ChatBotReply(questions.get(currentQuestionId), getAnswersList(currentQuestionId));
