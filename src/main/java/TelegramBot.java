@@ -1,3 +1,4 @@
+import javafx.util.Pair;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -13,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TelegramBot extends TelegramLongPollingBot {
-    private static ChatBot chatBot = new ChatBot(new GameFactory());
+    private static ChatBot chatBot;
 
     private static String BOT_USERNAME;
     private static String BOT_TOKEN;
@@ -22,6 +23,10 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     TelegramBot(DefaultBotOptions botOptions) {
         super(botOptions);
+        var tests = new ArrayList<Pair<String, Class<? extends IGame>>>();
+        tests.add(new Pair<>("winx", WinxQuiz.class));
+        tests.add(new Pair<>("PixieTest.txt", PixieQuiz.class));
+        chatBot = new ChatBot(new GameFactory(), tests);
         try {
             BOT_USERNAME = System.getenv("BOT_USERNAME");
             BOT_TOKEN = System.getenv("BOT_TOKEN");

@@ -1,3 +1,3 @@
 public interface IGameFactory {
-    IGame create();
+    IGame create(Class<? extends IGame> gameClass, String fileName);
 }
