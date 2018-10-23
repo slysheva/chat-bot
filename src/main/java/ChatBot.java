@@ -1,4 +1,4 @@
-import javafx.util.Pair;
+import org.glassfish.grizzly.utils.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,7 @@ class ChatBot {
         this.gameFactory = gameFactory;
         this.tests = tests;
         curTest = 0;
-        gameInstance = gameFactory.create(tests.get(curTest).getValue(), tests.get(curTest).getKey());
+        gameInstance = gameFactory.create(tests.get(curTest).getSecond(), tests.get(curTest).getFirst());
     }
 
     ChatBotReply answer(String message, int userId) {
@@ -23,7 +23,7 @@ class ChatBot {
             case "/start":
             case "Старт":
             case "Да":
-                gameInstance = gameFactory.create(tests.get(curTest).getValue(), tests.get(curTest).getKey());
+                gameInstance = gameFactory.create(tests.get(curTest).getSecond(), tests.get(curTest).getFirst());
                 gameInstance.markActive(userId);
                 ChatBotReply firstQuestion = gameInstance.proceedRequest("", userId);
                 return new ChatBotReply(gameInstance.getInitialMessage(userId) +
