@@ -41,9 +41,9 @@ public class WinxQuiz implements IGame {
 		while (sc.hasNextLine())
 		{
 			String currentQuestion = sc.nextLine();
-			ArrayList<Answer> currentAnswers = new ArrayList<>();
+			ArrayList<String> currentAnswers = new ArrayList<>();
 			for (int i = 0; i < answersCount; ++i)
-				currentAnswers.add(new Answer(sc.nextLine(), i));
+				currentAnswers.add(sc.nextLine());
 			steps.add(new QuizItem(currentAnswers, currentQuestion));
 		}
 
@@ -56,12 +56,12 @@ public class WinxQuiz implements IGame {
 
 	private List<String> getAnswersList(int[] order, int currentQuestionNumber)
 	{
-		List<Answer> questionAnswers = quizSteps.get(currentQuestionNumber - 1).answers;
+		List<String> questionAnswers = quizSteps.get(currentQuestionNumber - 1).answers;
 		List<String> orderedAnswers = new ArrayList<>();
 
 		int symbol = 65;
 		for (int index : order) {
-			orderedAnswers.add(String.format("%c. %s", (char) symbol, questionAnswers.get(index).answer));
+			orderedAnswers.add(String.format("%c. %s", (char) symbol, questionAnswers.get(index)));
 			symbol++;
 		}
 		return orderedAnswers;
