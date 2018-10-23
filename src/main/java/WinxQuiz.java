@@ -1,6 +1,7 @@
 import com.google.common.primitives.Ints;
 import database.DatabaseWorker;
 import database.GameDataSet;
+import org.glassfish.grizzly.utils.Pair;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -9,7 +10,7 @@ import java.util.*;
 public class WinxQuiz implements IGame {
 	private ArrayList<QuizItem> quizSteps;
 	private int answersCount;
-	private String[] characterOrder;
+	private Pair<String, String>[] characters;
 
 	private DatabaseWorker db = new DatabaseWorker();
 
@@ -26,7 +27,12 @@ public class WinxQuiz implements IGame {
 
 	private void parseQuizRules(Scanner sc) {
 		answersCount =  Integer.parseInt(sc.nextLine());
-		characterOrder = sc.nextLine().split(" ");
+		ArrayList<Pair<String, String>> charactersList = new ArrayList<>();
+		for (int i = 0; i < answersCount; ++i) {
+		    String[] character = sc.nextLine().split(" ");
+		    charactersList.add(new Pair<>(character[0], character[1]));
+        }
+		characters = charactersList.toArray(new Pair[0]);
 	}
 
 	private ArrayList<QuizItem> parseQuizSteps(Scanner sc) {
@@ -78,10 +84,10 @@ public class WinxQuiz implements IGame {
 
 		if (gameData.currentQuestionId > answersCount)
 		{
-			var character = characterOrder[Ints.indexOf(gameData.answerStatistics,
+			var character = characters[Ints.indexOf(gameData.answerStatistics,
 					Ints.max(gameData.answerStatistics))];
 			return new ChatBotReply(String.format("Всё понятно. Ты %s",
-					character), null, character);
+					character.getFirst()), null, character.getSecond());
 		}
 		if (gameData.currentQuestionId > 0) {
 			final char firstAnswer = 'A';

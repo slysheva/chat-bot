@@ -3,17 +3,17 @@ import java.util.List;
 class ChatBotReply {
     String message;
     List<String> keyboardOptions;
-    String imageName;
+    String imageUrl;
 
     ChatBotReply(String message, List<String> options) {
         this.message = message;
         keyboardOptions = options;
-        imageName = null;
+        imageUrl = null;
     }
 
-    ChatBotReply(String message, List<String> options, String imageName) {
+    ChatBotReply(String message, List<String> options, String imageUrl) {
         this.message = message;
         keyboardOptions = options;
-        this.imageName = imageName;
+        this.imageUrl = imageUrl;
     }
 }

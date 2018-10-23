@@ -86,4 +86,9 @@
 10 6 20
 10 12 21
 10 9 22
-
+Пифф https://ucarecdn.com/c87738e6-0a29-4e82-b35d-136d547f5d01/Piff.png
+Локетт https://ucarecdn.com/37a0c236-cebd-4d81-b0ca-d66a820ae2f3/Lockette.png
+Амур https://ucarecdn.com/3ad79992-1bdd-4507-8e0c-bfc13e3ef6d2/Amore.png
+Диджит https://ucarecdn.com/769b0393-3d50-4db5-bdd5-c15a6e665dda/Digit.png
+Тьюн https://ucarecdn.com/3f9302c0-76f8-4a4a-aac6-a4b1e07d3206/Tune.png
+Чатта https://ucarecdn.com/a4396ddf-36aa-4701-8d3e-b2f4daf2a9c3/Chatta.png

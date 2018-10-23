@@ -9,7 +9,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,11 +61,11 @@ public class TelegramBot extends TelegramLongPollingBot {
                 sendMessage.setReplyMarkup(makeKeyboard(reply.keyboardOptions));
             else
                 sendMessage.setReplyMarkup(noKeyboard);
-            if (reply.imageName != null)
+            if (reply.imageUrl != null)
             {
                 var sendPhoto = new SendPhoto();
                 sendPhoto.setChatId(update.getMessage().getChatId());
-                sendPhoto.setPhoto(new File(String.format("images/%s.png", reply.imageName)));
+                sendPhoto.setPhoto(reply.imageUrl);
                 execute(sendPhoto);
             }
             execute(sendMessage);

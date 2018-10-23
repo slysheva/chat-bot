@@ -39,12 +39,12 @@ class ChatBot {
             default:
                 if (gameInstance.isActive(userId)) {
                     ChatBotReply reply = gameInstance.proceedRequest(message, userId);
-                    if (reply.imageName == null || tests.size() - 1 == curTest) return reply;
+                    if (reply.imageUrl == null || tests.size() - 1 == curTest) return reply;
                     else {
                         var buttons = new ArrayList<String>();
                         buttons.add("Да");
                         buttons.add("Нет");
-                        return new ChatBotReply(reply.message + "\nХочешь пройти следующий тест?", buttons, reply.imageName);
+                        return new ChatBotReply(reply.message + "\nХочешь пройти следующий тест?", buttons, reply.imageUrl);
                     }
                 }
                 else

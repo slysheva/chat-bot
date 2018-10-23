@@ -12,6 +12,7 @@ public class PixieQuiz implements IGame {
     private ArrayList<String> answerOptions = new ArrayList<>();
     private ArrayList< ArrayList<DestinationNode> > testGraph;
     private Map<String, Integer> optionsIndex;
+    private Map<String, String> charactersImages;
 
     private DatabaseWorker db = new DatabaseWorker();
 
@@ -38,6 +39,7 @@ public class PixieQuiz implements IGame {
             questions.add(sc.nextLine());
         testGraph = new ArrayList<>();
         optionsIndex = new HashMap<>();
+        charactersImages = new HashMap<>();
         testGraph.add(new ArrayList<>());
         answerOptions.add("");
         optionsIndex.put("", 0);
@@ -56,6 +58,10 @@ public class PixieQuiz implements IGame {
         }
         testGraph.get(0).add(new DestinationNode(1, 0));
 
+        while (sc.hasNextLine()) {
+            String[] character = sc.nextLine().split(" ");
+            charactersImages.put(character[0], character[1]);
+        }
     }
 
     private int getNextQuestionIndex(int edgeIndex, int currentQuestionId) {
@@ -90,8 +96,9 @@ public class PixieQuiz implements IGame {
         currentQuestionId = getNextQuestionIndex(optionsIndex.get(request), currentQuestionId);
         if (testGraph.get(currentQuestionId).size() == 0) {
             markInactive(userId);
+            String characterName = questions.get(currentQuestionId);
             return new ChatBotReply(String.format("Всё понятно. Твоя пикси %s",
-                    questions.get(currentQuestionId)), null, questions.get(currentQuestionId));
+                    characterName), null, charactersImages.get(characterName));
         }
         db.setGameData(userId, new GameDataSet(userId, currentQuestionId));
         return new ChatBotReply(questions.get(currentQuestionId), getAnswersList(currentQuestionId));
