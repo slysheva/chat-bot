@@ -4,11 +4,15 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +23,8 @@ public class TelegramBot extends TelegramLongPollingBot {
     private static String BOT_TOKEN;
 
     private final ReplyKeyboardRemove noKeyboard = new ReplyKeyboardRemove();
+
+    private final String vkShareUrl = "https://vk.com/share.php?url=%s&title=%s&image=%s";
 
     TelegramBot(DefaultBotOptions botOptions) {
         super(botOptions);
@@ -61,11 +67,27 @@ public class TelegramBot extends TelegramLongPollingBot {
                 sendMessage.setReplyMarkup(makeKeyboard(reply.keyboardOptions));
             else
                 sendMessage.setReplyMarkup(noKeyboard);
-            if (reply.imageUrl != null)
+
+            if (reply.imageUrl != null && reply.characterName != null)
             {
                 var sendPhoto = new SendPhoto();
                 sendPhoto.setChatId(update.getMessage().getChatId());
                 sendPhoto.setPhoto(reply.imageUrl);
+
+                InlineKeyboardMarkup inlineMarkup = new InlineKeyboardMarkup();
+                List<List<InlineKeyboardButton>> inlineRows = new ArrayList<>();
+                List<InlineKeyboardButton> row = new ArrayList<>();
+                row.add(new InlineKeyboardButton()
+                        .setText("Рассказать в VK")
+                        .setUrl(String.format(vkShareUrl,
+                                URLEncoder.encode("https://t.me/winxx_bot", StandardCharsets.UTF_8),
+                                URLEncoder.encode(String.format("Я - %s из Winx. А ты?", reply.characterName),
+                                        StandardCharsets.UTF_8),
+                                URLEncoder.encode(reply.imageUrl, StandardCharsets.UTF_8))));
+                inlineRows.add(row);
+                inlineMarkup.setKeyboard(inlineRows);
+                sendPhoto.setReplyMarkup(inlineMarkup);
+
                 execute(sendPhoto);
             }
             execute(sendMessage);

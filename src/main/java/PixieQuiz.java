@@ -98,7 +98,10 @@ public class PixieQuiz implements IGame {
             markInactive(userId);
             String characterName = questions.get(currentQuestionId);
             return new ChatBotReply(String.format("Всё понятно. Твоя пикси %s",
-                    characterName), null, charactersImages.get(characterName));
+                    characterName),
+                    null,
+                    charactersImages.get(characterName),
+                    String.format("пикси %s", characterName));
         }
         db.setGameData(userId, new GameDataSet(userId, currentQuestionId));
         return new ChatBotReply(questions.get(currentQuestionId), getAnswersList(currentQuestionId));
