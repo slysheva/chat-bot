@@ -64,7 +64,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     update.getMessage().getChatId(),
                     reply.message
             );
-
+            sendMessage.enableHtml(true);
             if (reply.keyboardOptions != null)
                 sendMessage.setReplyMarkup(makeKeyboard(reply.keyboardOptions));
             else

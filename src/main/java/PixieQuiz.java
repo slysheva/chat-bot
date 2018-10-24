@@ -14,7 +14,7 @@ public class PixieQuiz implements IGame {
     private ArrayList<String> answerOptions = new ArrayList<>();
     private ArrayList< ArrayList<DestinationNode> > testGraph;
     private Map<String, Integer> optionsIndex;
-    private Map<String, String> charactersImages;
+    private HashMap<String, HashMap<String, String>> characters;
 
     private DatabaseWorker db = new DatabaseWorker();
 
@@ -25,7 +25,7 @@ public class PixieQuiz implements IGame {
 
             questionsCount = quizFile.questionsCount;
             answersCount = quizFile.answersCount;
-            charactersImages = quizFile.charactersImages;
+            characters = quizFile.characters;
             questions = quizFile.questions;
             questions.add(0, "");
             answerOptions.add(0, "");
@@ -91,10 +91,10 @@ public class PixieQuiz implements IGame {
         if (testGraph.get(currentQuestionId).size() == 0) {
             markInactive(userId);
             String characterName = questions.get(currentQuestionId);
-            return new ChatBotReply(String.format("Всё понятно. Твоя пикси %s",
+            return new ChatBotReply(String.format("Всё понятно. " + characters.get(characterName).get("description"),
                     characterName),
                     null,
-                    charactersImages.get(characterName),
+                    characters.get(characterName).get("image"),
                     String.format("пикси %s", characterName));
         }
         db.setGameData(userId, new GameDataSet(userId, currentQuestionId));

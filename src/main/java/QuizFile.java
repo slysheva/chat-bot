@@ -3,7 +3,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class QuizFile {
-    public HashMap<String, String> charactersImages;
+    public HashMap<String, HashMap<String, String>> characters;
     public ArrayList<String> questions;
     public int questionsCount;
     public int answersCount;
