@@ -1,8 +1,10 @@
+import com.esotericsoftware.yamlbeans.YamlException;
+import com.esotericsoftware.yamlbeans.YamlReader;
 import database.DatabaseWorker;
 import database.GameDataSet;
 
-import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.*;
 
 
@@ -17,51 +19,43 @@ public class PixieQuiz implements IGame {
     private DatabaseWorker db = new DatabaseWorker();
 
     PixieQuiz(String fileName) throws FileNotFoundException {
-        File file = new File(fileName);
-        Scanner sc = new Scanner(file);
-        parseQuizRules(sc);
-        parseQuizData(sc);
-        sc.close();
+        try {
+            YamlReader reader = new YamlReader(new FileReader(fileName));
+            QuizFile quizFile = reader.read(QuizFile.class);
+
+            questionsCount = quizFile.questionsCount;
+            answersCount = quizFile.answersCount;
+            charactersImages = quizFile.charactersImages;
+            questions = quizFile.questions;
+            questions.add(0, "");
+            answerOptions.add(0, "");
+            testGraph = new ArrayList<>();
+            optionsIndex = new HashMap<>();
+            optionsIndex.put("", 0);
+
+            var i = 0;
+            for (var e : quizFile.answers) {
+                answerOptions.add(e);
+                optionsIndex.put(e, i + 1);
+                testGraph.add(new ArrayList<>());
+                i++;
+            }
+            for (var e : quizFile.graph) {
+                int node = Integer.parseInt(e.get(0)) + 1;
+                DestinationNode nextNode = new DestinationNode(Integer.parseInt(e.get(1)) + 1,
+                        Integer.parseInt(e.get(2)) + 1);
+                testGraph.get(node).add(nextNode);
+
+            }
+            testGraph.get(0).add(new DestinationNode(1, 0));
+
+        } catch (YamlException e)
+        {
+            e.printStackTrace();
+        }
 
         db.connect();
         db.initDatabase();
-    }
-
-    private void parseQuizRules(Scanner sc) {
-        String[] countInfo =  sc.nextLine().split("\\s+");
-        questionsCount = Integer.parseInt(countInfo[0]);
-        answersCount = Integer.parseInt(countInfo[1]);
-    }
-
-    private void parseQuizData(Scanner sc) {
-        questions.add("");
-        for (int i = 0; i < questionsCount; ++i)
-            questions.add(sc.nextLine());
-        testGraph = new ArrayList<>();
-        optionsIndex = new HashMap<>();
-        charactersImages = new HashMap<>();
-        testGraph.add(new ArrayList<>());
-        answerOptions.add("");
-        optionsIndex.put("", 0);
-        for (int i = 0; i < answersCount; ++i) {
-            String answerOption = sc.nextLine();
-            answerOptions.add(answerOption);
-            optionsIndex.put(answerOption, i + 1);
-            testGraph.add(new ArrayList<>());
-        }
-        for (int i = 0; i < answersCount; ++i) {
-            String[] edgeInfo = sc.nextLine().split(" ");
-            int node = Integer.parseInt(edgeInfo[0]) + 1;
-            DestinationNode nextNode = new DestinationNode(Integer.parseInt(edgeInfo[1]) + 1,
-                        Integer.parseInt(edgeInfo[2]) + 1);
-            testGraph.get(node).add(nextNode);
-        }
-        testGraph.get(0).add(new DestinationNode(1, 0));
-
-        while (sc.hasNextLine()) {
-            String[] character = sc.nextLine().split(" ");
-            charactersImages.put(character[0], character[1]);
-        }
     }
 
     private int getNextQuestionIndex(int edgeIndex, int currentQuestionId) {

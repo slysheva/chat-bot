@@ -1,3 +1,4 @@
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.glassfish.grizzly.utils.Pair;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -11,6 +12,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.File;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -30,7 +32,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         super(botOptions);
         var tests = new ArrayList<Pair<String, Class<? extends IGame>>>();
         tests.add(new Pair<>("winx", WinxQuiz.class));
-        tests.add(new Pair<>("PixieTest.txt", PixieQuiz.class));
+        tests.add(new Pair<>("pixie.yml", PixieQuiz.class));
         chatBot = new ChatBot(new GameFactory(), tests);
         try {
             BOT_USERNAME = System.getenv("BOT_USERNAME");

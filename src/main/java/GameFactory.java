@@ -5,11 +5,14 @@ public class GameFactory implements IGameFactory {
     public IGame create(Class<? extends IGame> game, String fileName)
     {
         try {
-            return game.cast(game
-                    .getDeclaredConstructors()[0]
-                    .newInstance(fileName));
+            return game
+                    .getDeclaredConstructor(String.class)
+                    .newInstance(fileName);
         }
-        catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+        catch (NoSuchMethodException |
+                IllegalAccessException |
+                InstantiationException |
+                InvocationTargetException e) {
             e.printStackTrace();
         }
         return null;

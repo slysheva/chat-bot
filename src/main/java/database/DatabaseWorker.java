@@ -57,21 +57,22 @@ public class DatabaseWorker {
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
 
-            rs.next();
-            int id = rs.getInt("id");
+            if(rs.next()) {
+                int id = rs.getInt("id");
 
-            int currentQuestionId = rs.getInt("current_question_id");
-            Array answerStatistics = rs.getArray("answer_statistics");
-            Array answersOrder = rs.getArray("answers_order");
+                int currentQuestionId = rs.getInt("current_question_id");
+                Array answerStatistics = rs.getArray("answer_statistics");
+                Array answersOrder = rs.getArray("answers_order");
 
-            rs.close();
-            stmt.close();
-            if (answerStatistics == null || answersOrder == null) {
-                return new GameDataSet(id, currentQuestionId);
-            }
-            return new GameDataSet(id, currentQuestionId,
+                rs.close();
+                stmt.close();
+                if (answerStatistics == null || answersOrder == null) {
+                    return new GameDataSet(id, currentQuestionId);
+                }
+                return new GameDataSet(id, currentQuestionId,
                         (Integer[]) Objects.requireNonNull(answerStatistics).getArray(),
-                    (Integer[]) Objects.requireNonNull(answersOrder).getArray());
+                        (Integer[]) Objects.requireNonNull(answersOrder).getArray());
+            }
         }
         catch (SQLException e) {
             e.printStackTrace();
