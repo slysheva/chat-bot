@@ -16,13 +16,14 @@ public class WinxQuiz implements IGame {
 
 	WinxQuiz(String fileName) throws FileNotFoundException
 	{
-		db.connect();
-		db.initDatabase();
 		File file = new File(fileName);
 		Scanner sc = new Scanner(file);
 		parseQuizRules(sc);
 		quizSteps = parseQuizSteps(sc);
 		sc.close();
+
+        db.connect();
+        db.initDatabase(quizSteps.size());
 	}
 
 	private void parseQuizRules(Scanner sc) {

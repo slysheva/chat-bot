@@ -27,18 +27,20 @@ public class DatabaseWorker {
         }
     }
 
-    public void initDatabase() {
+    public void initDatabase(int questionsCount) {
         try {
             if (c.isClosed())
                 reconnect();
 
             Statement stmt = c.createStatement();
-            String sql = "CREATE TABLE IF NOT EXISTS quiz(" +
+            String sql = String.format(
+                    "CREATE TABLE IF NOT EXISTS quiz(" +
                     "id INT PRIMARY KEY NOT NULL, " +
                     "current_question_id INT NOT NULL, " +
-                    "answer_statistics INTEGER[6], " +
-                    "answers_order INTEGER[6], " +
-                    "game_active BOOLEAN)";
+                    "answer_statistics INTEGER[%d], " +
+                    "answers_order INTEGER[%d], " +
+                    "game_active BOOLEAN)",
+                    questionsCount, questionsCount);
             stmt.executeUpdate(sql);
             stmt.close();
         }
