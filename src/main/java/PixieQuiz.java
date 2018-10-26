@@ -10,7 +10,6 @@ import java.util.*;
 
 public class PixieQuiz implements IGame {
     private Map<Integer, String> questions = new HashMap<Integer, String>();
-   // private int questionsCount, answersCount;
     private ArrayList<String> answerOptions = new ArrayList<>();
     private ArrayList< ArrayList<DestinationNode> > testGraph;
     private Map<String, Integer> optionsIndex;
@@ -22,9 +21,6 @@ public class PixieQuiz implements IGame {
         try {
             YamlReader reader = new YamlReader(new FileReader(fileName));
             QuizFile quizFile = reader.read(QuizFile.class);
-
-          //  questionsCount = quizFile.questionsCount;
-           // answersCount = quizFile.answersCount;
             characters = quizFile.characters;
             questions.put(0, "");
             answerOptions.add(0, "");
@@ -63,7 +59,7 @@ public class PixieQuiz implements IGame {
             if (item.Edge == edgeIndex)
                 return item.Node;
         }
-        return  0; //так себе так делать
+        return  0;
     }
 
     private List<String> getAnswersList(int currentQuestionId){
