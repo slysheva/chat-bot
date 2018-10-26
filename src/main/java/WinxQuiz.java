@@ -82,7 +82,7 @@ public class WinxQuiz implements IGame {
 	public ChatBotReply proceedRequest(String request, int userId) {
 		GameDataSet gameData = getGameData(userId);
 
-		if (gameData.currentQuestionId > answersCount)
+		if (gameData.currentQuestionId >= quizSteps.size())
 		{
 			var character = characters[Ints.indexOf(gameData.answerStatistics,
 					Ints.max(gameData.answerStatistics))];

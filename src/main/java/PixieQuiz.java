@@ -9,8 +9,8 @@ import java.util.*;
 
 
 public class PixieQuiz implements IGame {
-    private  ArrayList<String> questions = new ArrayList<>();
-    private int questionsCount, answersCount;
+    private Map<Integer, String> questions = new HashMap<Integer, String>();
+   // private int questionsCount, answersCount;
     private ArrayList<String> answerOptions = new ArrayList<>();
     private ArrayList< ArrayList<DestinationNode> > testGraph;
     private Map<String, Integer> optionsIndex;
@@ -23,29 +23,29 @@ public class PixieQuiz implements IGame {
             YamlReader reader = new YamlReader(new FileReader(fileName));
             QuizFile quizFile = reader.read(QuizFile.class);
 
-            questionsCount = quizFile.questionsCount;
-            answersCount = quizFile.answersCount;
+          //  questionsCount = quizFile.questionsCount;
+           // answersCount = quizFile.answersCount;
             characters = quizFile.characters;
-            questions = quizFile.questions;
-            questions.add(0, "");
+            questions.put(0, "");
             answerOptions.add(0, "");
             testGraph = new ArrayList<>();
             optionsIndex = new HashMap<>();
             optionsIndex.put("", 0);
+            testGraph.add(new ArrayList<>());
+            for (var item : quizFile.questions)
+                questions.put(Integer.parseInt(item.get("id")) + 1, item.get("text"));
+
 
             var i = 0;
             for (var e : quizFile.answers) {
-                answerOptions.add(e);
-                optionsIndex.put(e, i + 1);
+                answerOptions.add(e.get("text"));
+                optionsIndex.put(e.get("text"), i + 1);
                 testGraph.add(new ArrayList<>());
-                i++;
-            }
-            for (var e : quizFile.graph) {
-                int node = Integer.parseInt(e.get(0)) + 1;
-                DestinationNode nextNode = new DestinationNode(Integer.parseInt(e.get(1)) + 1,
-                        Integer.parseInt(e.get(2)) + 1);
+                int node = Integer.parseInt(e.get("from")) + 1;
+                DestinationNode nextNode = new DestinationNode(Integer.parseInt(e.get("to")) + 1,
+                        i + 1);
                 testGraph.get(node).add(nextNode);
-
+                i++;
             }
             testGraph.get(0).add(new DestinationNode(1, 0));
 
