@@ -24,12 +24,11 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private final ReplyKeyboardRemove noKeyboard = new ReplyKeyboardRemove();
 
-    private final String vkShareUrl = "https://vk.com/share.php?url=%s&title=%s&image=%s";
+    protected final String vkShareUrl = "https://vk.com/share.php?url=%s&title=%s&image=%s";
 
     TelegramBot(DefaultBotOptions botOptions) {
         super(botOptions);
         var tests = new ArrayList<Pair<String, Class<? extends IGame>>>();
-        tests.add(new Pair<>("winx", WinxQuiz.class));
         tests.add(new Pair<>("pixie.yml", PixieQuiz.class));
         chatBot = new ChatBot(new GameFactory(), tests);
         try {
@@ -48,9 +47,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     @Override
-    public String getBotToken() {
-        return BOT_TOKEN;
-    }
+    public String getBotToken() { return BOT_TOKEN; }
 
     @Override
     public void onUpdateReceived(Update update) {

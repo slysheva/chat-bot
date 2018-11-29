@@ -18,7 +18,11 @@ public class PixieQuiz implements IGame {
 
     private DatabaseWorker db = new DatabaseWorker();
 
-    PixieQuiz(String fileName) throws FileNotFoundException {
+    PixieQuiz(String fileName) {
+        BuildQuiz(fileName);
+    }
+
+    private void BuildQuiz(String fileName) {
         try {
             YamlReader reader = new YamlReader(new FileReader(fileName));
             QuizFile quizFile = reader.read(QuizFile.class);
@@ -49,10 +53,12 @@ public class PixieQuiz implements IGame {
 
             db.connect();
             db.initDatabase(quizFile.questionsCount);
-
         } catch (YamlException e)
         {
             e.printStackTrace();
+        }
+        catch (FileNotFoundException e) {
+            System.out.println("Quiz file not found.");
         }
     }
 
