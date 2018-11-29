@@ -52,7 +52,7 @@ public class PixieQuiz implements IGame {
             quizGraph.get(0).add(new DestinationNode(1, 0));
 
             db.connect();
-            db.initDatabase(quizFile.questionsCount);
+            db.initDatabase();
         } catch (YamlException e)
         {
             e.printStackTrace();

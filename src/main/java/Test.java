@@ -1,15 +1,15 @@
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.glassfish.grizzly.utils.Pair;
 import org.junit.jupiter.api.Test;
 
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class Tests
 {
     @Test
-    void testIncorrectAnswerPixie() throws FileNotFoundException {
+    void testIncorrectAnswerPixie() {
         var gameInstance = new PixieQuiz("pixie.yml");
         gameInstance.markActive(0);
         var answer = "???";
@@ -19,7 +19,7 @@ class Tests
     }
 
     @Test
-    void testCorrectCharacterPixie() throws FileNotFoundException {
+    void testCorrectCharacterPixie() {
         var gameInstance = new PixieQuiz("pixie.yml");
         gameInstance.markActive(0);
         ChatBotReply curReply = gameInstance.proceedRequest("", 0);

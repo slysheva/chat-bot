@@ -44,7 +44,8 @@ class ChatBot {
                         var buttons = new ArrayList<String>();
                         buttons.add("Да");
                         buttons.add("Нет");
-                        return new ChatBotReply(reply.message + "\nХочешь пройти следующий тест?", buttons, reply.imageUrl, reply.characterName);
+                        return new ChatBotReply(reply.message + "\nХочешь пройти следующий тест?",
+                                buttons, reply.imageUrl, reply.characterName);
                     }
                 }
                 else
