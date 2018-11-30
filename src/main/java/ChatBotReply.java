@@ -6,6 +6,13 @@ class ChatBotReply {
     String imageUrl;
     String characterName;
 
+    ChatBotReply(String message) {
+        this.message = message;
+        keyboardOptions = null;
+        imageUrl = null;
+        characterName = null;
+    }
+
     ChatBotReply(String message, List<String> options) {
         this.message = message;
         keyboardOptions = options;
@@ -13,9 +20,8 @@ class ChatBotReply {
         characterName = null;
     }
 
-    ChatBotReply(String message, List<String> options, String imageUrl, String characterName) {
+    ChatBotReply(String message, String imageUrl, String characterName) {
         this.message = message;
-        keyboardOptions = options;
         this.imageUrl = imageUrl;
         this.characterName = characterName;
     }

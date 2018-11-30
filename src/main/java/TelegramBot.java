@@ -1,4 +1,3 @@
-import org.glassfish.grizzly.utils.Pair;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -11,6 +10,10 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -28,9 +31,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     TelegramBot(DefaultBotOptions botOptions) {
         super(botOptions);
-        var tests = new ArrayList<Pair<String, Class<? extends IGame>>>();
-        tests.add(new Pair<>("pixie.yml", PixieQuiz.class));
-        chatBot = new ChatBot(new GameFactory(), tests);
+        chatBot = new ChatBot();
         try {
             BOT_USERNAME = System.getenv("BOT_USERNAME");
             BOT_TOKEN = System.getenv("BOT_TOKEN");
@@ -52,8 +53,14 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         try {
-            ChatBotReply reply = chatBot.answer(update.getMessage().getText(),
-                    update.getMessage().getFrom().getId());
+            ChatBotReply reply;
+            if (update.getMessage().hasEntities() && update.getMessage().getEntities().get(0).getType().equals("url")) {
+                String content = getFileContent(update.getMessage().getEntities().get(0).getText());
+                reply = chatBot.addQuiz(content);
+            }
+            else {
+                reply = chatBot.answer(update.getMessage().getText(), update.getMessage().getFrom().getId());
+            }
 
             var sendMessage = new SendMessage(
                     update.getMessage().getChatId(),
@@ -95,7 +102,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private ReplyKeyboardMarkup makeKeyboard(List<String> options) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
-        replyKeyboardMarkup.setResizeKeyboard(false);
+        replyKeyboardMarkup.setResizeKeyboard(true);
         replyKeyboardMarkup.setOneTimeKeyboard(true);
 
         List<KeyboardRow> keyboardRows = new ArrayList<>();
@@ -107,5 +114,24 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         replyKeyboardMarkup.setKeyboard(keyboardRows);
         return replyKeyboardMarkup;
+    }
+
+    private String getFileContent(String url) {
+                try {
+            URL fileUrl = new URL(url);
+            BufferedReader in = new BufferedReader(new InputStreamReader(fileUrl.openStream()));
+            String inputLine;
+            StringBuilder content = new StringBuilder();
+            while ((inputLine = in.readLine()) != null) {
+                content.append(inputLine);
+                content.append('\n');
+            }
+            in.close();
+            return content.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

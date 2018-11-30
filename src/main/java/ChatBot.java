@@ -1,55 +1,99 @@
-import org.glassfish.grizzly.utils.Pair;
+import database.DatabaseWorker;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class ChatBot {
-    private IGame gameInstance;
-    private IGameFactory gameFactory;
-    private List<Pair<String, Class<? extends IGame>>> tests;
-    private Integer curTest;
+    private QuizRunner runner;
+    private DatabaseWorker db;
 
-    ChatBot(IGameFactory gameFactory, List<Pair<String, Class<? extends IGame>>> tests) {
-        this.gameFactory = gameFactory;
-        this.tests = tests;
-        curTest = 0;
-        gameInstance = gameFactory.create(tests.get(curTest).getSecond(), tests.get(curTest).getFirst());
+    protected final String quizNotActive = "Игра ещё не началась. Чтобы посмотреть " +
+                                           "список доступных опросов, напиши команду /start";
+    protected final String quizEnded = "Игра закончена. Чтобы начать заново, напиши /start";
+    protected final String nextQuiz = "Чтобы пройти следующий тест, напиши /start";
+    protected final String quizActive = "Игра уже идёт. Чтобы остановить, напиши /stop";
+    protected final String start = "Привет! Чтобы пройти опрос, выбери его из списка. Чтобы добавить новый опрос, " +
+                                   "напиши /add";
+    protected final String addQuiz = "Чтобы добавить новый опрос, пришли мне его в виде текстового файла";
+    protected final String quizParseError = "Произошла ошибка во время обработки файла. Попробуй ещё раз";
+    protected final String quizAdded = "Опрос успешно добавлен!";
+    protected final String unrecognized = "Сообщение не распознано. Попробуй ещё раз";
+    protected final String quizzesList = "Вот список доступных опросов:";
+    protected final String quizNotFound = "Опрос на найден. Попробуйте пройти другой";
+
+    protected final Pattern quizSelection = Pattern.compile("[0-9]+:[ A-Za-zА-Яа-я?,.-]+");
+
+    ChatBot() {
+        runner = new QuizRunner();
+        db = new DatabaseWorker();
+        db.connect();
     }
 
     ChatBotReply answer(String message, int userId) {
-        if (message.equals("Да")) curTest++;
-        if ("/start".equals(message) || "Старт".equals(message)) curTest = 0;
-        switch (message) {
+        switch (message.toLowerCase()) {
             case "/start":
-            case "Старт":
-            case "Да":
-                gameInstance = gameFactory.create(tests.get(curTest).getSecond(), tests.get(curTest).getFirst());
-                gameInstance.markActive(userId);
-                ChatBotReply firstQuestion = gameInstance.proceedRequest("", userId);
-                return new ChatBotReply(gameInstance.getInitialMessage(userId) +
-                        '\n' + firstQuestion.message, firstQuestion.keyboardOptions);
+            case "старт":
+                if (runner.isActive(userId))
+                    return new ChatBotReply(quizActive);
+                return new ChatBotReply(start, getQuizzesList());
+            case "/add":
+                if (runner.isActive(userId))
+                    return new ChatBotReply(quizActive);
+                else
+                    return new ChatBotReply(addQuiz);
+            case "/list":
+                return new ChatBotReply(quizzesList, getQuizzesList());
             case "/stop":
-            case "Стоп":
-            case "Нет":
-                curTest = 0;
-                if (!gameInstance.isActive(userId))
-                    return new ChatBotReply("Игра ещё не началась.", null);
-                gameInstance.markInactive(userId);
-                return new ChatBotReply("Игра закончена.", null);
+            case "стоп":
+                if (!runner.isActive(userId))
+                    return new ChatBotReply(quizNotActive);
+                runner.stop(userId);
+                return new ChatBotReply(quizEnded);
             default:
-                if (gameInstance.isActive(userId)) {
-                    ChatBotReply reply = gameInstance.proceedRequest(message, userId);
-                    if (reply.imageUrl == null || tests.size() - 1 == curTest) return reply;
+                if (runner.isActive(userId)) {
+                    ChatBotReply reply = runner.proceedRequest(message, userId);
+                    if (reply.imageUrl == null)
+                        return reply;
                     else {
-                        var buttons = new ArrayList<String>();
-                        buttons.add("Да");
-                        buttons.add("Нет");
-                        return new ChatBotReply(reply.message + "\nХочешь пройти следующий тест?",
-                                buttons, reply.imageUrl, reply.characterName);
+                        return new ChatBotReply(reply.message + '\n' + nextQuiz,
+                                reply.imageUrl, reply.characterName);
                     }
                 }
-                else
-                    return new ChatBotReply("Игра ещё не началась.", null);
+                else {
+                    Matcher m = quizSelection.matcher(message);
+                    if (m.matches()) {
+                        int quizId = Integer.parseInt(message.split(":")[0]);
+                        if (!runner.start(userId, quizId))
+                            return new ChatBotReply(quizNotFound, getQuizzesList());
+                        ChatBotReply firstQuestion = runner.proceedRequest("", userId);
+                        return new ChatBotReply(runner.getInitialMessage(quizId) +
+                                '\n' + firstQuestion.message, firstQuestion.keyboardOptions);
+                    }
+                    else
+                        return new ChatBotReply(unrecognized);
+                }
         }
+    }
+
+    ChatBotReply addQuiz(String content) {
+        try {
+            Quiz quiz = new Quiz(content);
+            int quizId = db.addQuiz(Serializer.serialize(quiz));
+            runner.addQuiz(quizId, quiz);
+        } catch (QuizException e) {
+            return new ChatBotReply(quizParseError);
+        }
+        return new ChatBotReply(quizAdded);
+    }
+
+    List<String> getQuizzesList() {
+        var quizzes = db.getQuizzesList();
+        List<String> options = new ArrayList<>();
+        for (var e: quizzes) {
+            options.add(String.format("%s: %s", e.getFirst(), e.getSecond()));
+        }
+        return options;
     }
 }
