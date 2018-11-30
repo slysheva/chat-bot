@@ -2,13 +2,14 @@ import database.DatabaseWorker;
 import database.QuizDataSet;
 import org.glassfish.grizzly.utils.Pair;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public class QuizRunner implements IGame {
     private HashMap<Integer, Quiz> quizzes;
     private DatabaseWorker db = new DatabaseWorker();
+
+    protected final String noSuchAnswer = "Такого варианта ответа нет. Попробуй ещё раз";
+    protected final String quizFinished = "Тест пройден.";
 
     QuizRunner() {
         quizzes = new HashMap<>();
@@ -17,22 +18,6 @@ public class QuizRunner implements IGame {
 
     void addQuiz(int id, Quiz quiz) {
         quizzes.put(id, quiz);
-    }
-
-    private int getNextQuestionIndex(Quiz quiz, int edgeIndex, int currentQuestionId) {
-        for (DestinationNode item : quiz.quizGraph.get(currentQuestionId)) {
-            if (item.Edge == edgeIndex)
-                return item.Node;
-        }
-        return  0;
-    }
-
-    private List<String> getAnswersList(Quiz quiz, int currentQuestionId){
-        List<String> answersList = new ArrayList<>();
-        for (DestinationNode item : quiz.quizGraph.get(currentQuestionId)){
-            answersList.add(quiz.answers.get(item.Edge));
-        }
-        return answersList;
     }
 
     private Pair<Integer, Integer> getGameData(int userId) {
@@ -47,19 +32,19 @@ public class QuizRunner implements IGame {
         Quiz quiz = quizzes.get(currentQuizId);
 
         if (!quiz.answersIndexes.containsKey(request)) {
-            return new ChatBotReply("Подумай ещё раз!", getAnswersList(quiz, currentQuestionId));
+            return new ChatBotReply(noSuchAnswer, quiz.getAnswersList(currentQuestionId));
         }
-        currentQuestionId = getNextQuestionIndex(quiz, quiz.answersIndexes.get(request), currentQuestionId);
+        currentQuestionId = quiz.getNextQuestionIndex(quiz.answersIndexes.get(request), currentQuestionId);
         if (quiz.quizGraph.get(currentQuestionId).size() == 0) {
             stop(userId);
             String characterName = quiz.questions.get(currentQuestionId);
-            return new ChatBotReply(String.format("Всё понятно. " + quiz.characters.get(characterName).get("description"),
+            return new ChatBotReply(String.format(quizFinished + quiz.characters.get(characterName).get("description"),
                     characterName),
                     quiz.characters.get(characterName).get("image"),
                     String.format("пикси %s", characterName));
         }
         db.updateCurrentQuestionId(userId, currentQuestionId);
-        return new ChatBotReply(quiz.questions.get(currentQuestionId), getAnswersList(quiz, currentQuestionId));
+        return new ChatBotReply(quiz.questions.get(currentQuestionId), quiz.getAnswersList(currentQuestionId));
     }
 
     @Override

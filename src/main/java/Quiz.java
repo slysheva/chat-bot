@@ -4,6 +4,7 @@ import database.DatabaseWorker;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -76,5 +77,26 @@ public class Quiz {
         {
             throw new QuizException();
         }
+    }
+
+    int getNextQuestionIndex(int edgeIndex, int currentQuestionId) {
+        for (DestinationNode item : quizGraph.get(currentQuestionId)) {
+            if (item.Edge == edgeIndex)
+                return item.Node;
+        }
+        return  0;
+    }
+
+    List<String> getAnswersList(int currentQuestionId){
+        List<String> answersList = new ArrayList<>();
+        for (DestinationNode item : quizGraph.get(currentQuestionId)){
+            answersList.add(answers.get(item.Edge));
+        }
+        return answersList;
+    }
+
+    // TODO: Написать алгоритм валидации графа
+    boolean isValid() {
+        return true;
     }
 }

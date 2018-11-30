@@ -9,6 +9,7 @@ class ChatBot {
     private QuizRunner runner;
     private DatabaseWorker db;
 
+    // TODO: Подумать, как можно вынести все эти строки, нужно ли это
     protected final String quizNotActive = "Игра ещё не началась. Чтобы посмотреть " +
                                            "список доступных опросов, напиши команду /start";
     protected final String quizEnded = "Игра закончена. Чтобы начать заново, напиши /start";
