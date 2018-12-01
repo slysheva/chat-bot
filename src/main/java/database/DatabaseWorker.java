@@ -162,6 +162,24 @@ public class DatabaseWorker {
         return null;
     }
 
+    public boolean quizExists(int quizId) {
+        try {
+            checkConnection();
+
+            PreparedStatement stmt = c.prepareStatement("SELECT count(*) FROM quizzes WHERE id = ?;");
+            stmt.setInt(1, quizId);
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next())
+                return rs.getInt("count") > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        return false;
+    }
+
     public void updateCurrentQuestionId(int userId, int currentQuestionId) {
         try {
             checkConnection();

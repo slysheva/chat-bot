@@ -81,8 +81,7 @@ class ChatBot {
     ChatBotReply addQuiz(String content) {
         try {
             Quiz quiz = new Quiz(content);
-            int quizId = db.addQuiz(Serializer.serialize(quiz));
-            runner.addQuiz(quizId, quiz);
+            db.addQuiz(Serializer.serialize(quiz));
         } catch (QuizException e) {
             return new ChatBotReply(quizParseError);
         }

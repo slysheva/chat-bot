@@ -2,22 +2,16 @@ import database.DatabaseWorker;
 import database.QuizDataSet;
 import org.glassfish.grizzly.utils.Pair;
 
-import java.util.HashMap;
+import java.util.Objects;
 
 public class QuizRunner implements IGame {
-    private HashMap<Integer, Quiz> quizzes;
     private DatabaseWorker db = new DatabaseWorker();
 
     protected final String noSuchAnswer = "Такого варианта ответа нет. Попробуй ещё раз";
     protected final String quizFinished = "Тест пройден.";
 
     QuizRunner() {
-        quizzes = new HashMap<>();
         db.connect();
-    }
-
-    void addQuiz(int id, Quiz quiz) {
-        quizzes.put(id, quiz);
     }
 
     private Pair<Integer, Integer> getGameData(int userId) {
@@ -29,7 +23,7 @@ public class QuizRunner implements IGame {
         Pair<Integer, Integer> gameData = getGameData(userId);
         int currentQuizId = gameData.getFirst();
         int currentQuestionId = gameData.getSecond();
-        Quiz quiz = quizzes.get(currentQuizId);
+        Quiz quiz = Objects.requireNonNull(loadQuiz(currentQuizId));
 
         if (!quiz.answersIndexes.containsKey(request)) {
             return new ChatBotReply(noSuchAnswer, quiz.getAnswersList(currentQuestionId));
@@ -49,29 +43,27 @@ public class QuizRunner implements IGame {
 
     @Override
     public String getInitialMessage(int quizId) {
-        return quizzes.get(quizId).initialMessage;
+        return Objects.requireNonNull(loadQuiz(quizId)).initialMessage;
     }
 
     @Override
     public boolean start(int userId, int quizId) {
-        if (!quizExists(quizId)) {
-            if (!loadQuiz(quizId))
-                return false;
+        if (quizNotExists(quizId)) {
+            return false;
         }
         db.markGameActive(userId, quizId);
         return true;
     }
 
-    private boolean loadQuiz(int quizId) {
+    private Quiz loadQuiz(int quizId) {
+        if (quizNotExists(quizId))
+            return null;
         QuizDataSet data = db.getQuiz(quizId);
-        if (data == null)
-            return false;
-        addQuiz(quizId, Serializer.deserialize(data));
-        return true;
+        return Serializer.deserialize(data);
     }
 
-    private boolean quizExists(int quizId) {
-        return quizzes.containsKey(quizId);
+    private boolean quizNotExists(int quizId) {
+        return !db.quizExists(quizId);
     }
 
     @Override
