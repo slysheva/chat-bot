@@ -8,7 +8,7 @@ public class QuizRunner implements IGame {
     private DatabaseWorker db = new DatabaseWorker();
 
     protected final String noSuchAnswer = "Такого варианта ответа нет. Попробуй ещё раз";
-    protected final String quizFinished = "Тест пройден.";
+    protected final String quizFinished = "Тест пройден. ";
 
     QuizRunner() {
         db.connect();
@@ -31,11 +31,11 @@ public class QuizRunner implements IGame {
         currentQuestionId = quiz.getNextQuestionIndex(quiz.answersIndexes.get(request), currentQuestionId);
         if (quiz.quizGraph.get(currentQuestionId).size() == 0) {
             stop(userId);
-            String characterName = quiz.questions.get(currentQuestionId);
-            return new ChatBotReply(String.format(quizFinished + quiz.characters.get(characterName).get("description"),
-                    characterName),
-                    quiz.characters.get(characterName).get("image"),
-                    String.format("пикси %s", characterName));
+            String resultName = quiz.questions.get(currentQuestionId);
+            return new ChatBotReply(String.format(quizFinished + quiz.results.get(resultName).get("description"),
+                    resultName),
+                    quiz.results.get(resultName).get("image"),
+                    String.format(quiz.shareText, resultName));
         }
         db.updateCurrentQuestionId(userId, currentQuestionId);
         return new ChatBotReply(quiz.questions.get(currentQuestionId), quiz.getAnswersList(currentQuestionId));

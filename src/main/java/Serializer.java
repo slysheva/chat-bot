@@ -13,17 +13,17 @@ public class Serializer {
     private static final Type answers = new TypeToken<ArrayList<String>>(){}.getType();
     private static final Type quizGraph = new TypeToken<ArrayList<ArrayList<DestinationNode>>>(){}.getType();
     private static final Type answersIndexes = new TypeToken<Map<String, Integer>>(){}.getType();
-    private static final Type characters = new TypeToken<HashMap<String, HashMap<String, String>>>(){}.getType();
+    private static final Type results = new TypeToken<HashMap<String, HashMap<String, String>>>(){}.getType();
 
     public static Quiz deserialize(QuizDataSet data) {
         return new Quiz(data.name, data.initialMessage, data.shareText, gson.fromJson(data.questions, questions),
                 gson.fromJson(data.answers, answers), gson.fromJson(data.quizGraph, quizGraph),
-                gson.fromJson(data.answersIndexes, answersIndexes), gson.fromJson(data.characters, characters));
+                gson.fromJson(data.answersIndexes, answersIndexes), gson.fromJson(data.results, results));
     }
 
     public static QuizDataSet serialize(Quiz quiz) {
         return new QuizDataSet(quiz.name, quiz.initialMessage, quiz.shareText, gson.toJson(quiz.questions),
                 gson.toJson(quiz.answers), gson.toJson(quiz.quizGraph), gson.toJson(quiz.answersIndexes),
-                gson.toJson(quiz.characters));
+                gson.toJson(quiz.results));
     }
 }

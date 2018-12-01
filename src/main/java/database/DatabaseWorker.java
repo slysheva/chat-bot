@@ -51,7 +51,7 @@ public class DatabaseWorker {
                              "answers TEXT NOT NULL, " +
                              "quiz_graph TEXT NOT NULL, " +
                              "answers_indexes TEXT NOT NULL, " +
-                             "characters TEXT NOT NULL)";
+                             "results TEXT NOT NULL)";
             stmt.executeUpdate(quizzes);
             stmt.close();
         }
@@ -61,13 +61,13 @@ public class DatabaseWorker {
         }
     }
 
-    public int addQuiz(QuizDataSet quiz) {
+    public void addQuiz(QuizDataSet quiz) {
         try {
             checkConnection();
 
             PreparedStatement stmt = c.prepareStatement("INSERT INTO quizzes(name, initial_message, share_text, " +
                                                            "questions, answers, quiz_graph, answers_indexes, " +
-                                                           "characters) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id");
+                                                           "results) VALUES (?, ?, ?, ?, ?, ?, ?, ?);");
             stmt.setString(1, quiz.name);
             stmt.setString(2, quiz.initialMessage);
             stmt.setString(3, quiz.shareText);
@@ -75,22 +75,14 @@ public class DatabaseWorker {
             stmt.setString(5, quiz.answers);
             stmt.setString(6, quiz.quizGraph);
             stmt.setString(7, quiz.answersIndexes);
-            stmt.setString(8, quiz.characters);
-            ResultSet rs = stmt.executeQuery();
-
-            int id = 0;
-            if (rs.next()) {
-                id = rs.getInt("id");
-            }
-
+            stmt.setString(8, quiz.results);
+            stmt.executeUpdate();
             stmt.close();
-            return id;
         }
         catch (SQLException e) {
             e.printStackTrace();
             System.exit(1);
         }
-        return 0;
     }
 
     public ArrayList<Pair<Integer, String>> getQuizzesList() {
@@ -125,7 +117,7 @@ public class DatabaseWorker {
             if (rs.next()) {
                 return new QuizDataSet(rs.getInt("id"), rs.getString("name"), rs.getString("initial_message"),
                         rs.getString("share_text"), rs.getString("questions"), rs.getString("answers"),
-                        rs.getString("quiz_graph"), rs.getString("answers_indexes"), rs.getString("characters"));
+                        rs.getString("quiz_graph"), rs.getString("answers_indexes"), rs.getString("results"));
             }
             stmt.close();
             return null;

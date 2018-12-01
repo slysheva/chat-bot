@@ -72,7 +72,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             else
                 sendMessage.setReplyMarkup(noKeyboard);
 
-            if (reply.imageUrl != null && reply.characterName != null)
+            if (reply.imageUrl != null && reply.shareText != null)
             {
                 var sendPhoto = new SendPhoto();
                 sendPhoto.setChatId(update.getMessage().getChatId());
@@ -84,9 +84,8 @@ public class TelegramBot extends TelegramLongPollingBot {
                 row.add(new InlineKeyboardButton()
                         .setText("Рассказать в VK")
                         .setUrl(String.format(vkShareUrl,
-                                URLEncoder.encode("https://t.me/winxx_bot", StandardCharsets.UTF_8),
-                                URLEncoder.encode(String.format("Я - %s из Winx. А ты?", reply.characterName),
-                                        StandardCharsets.UTF_8),
+                                URLEncoder.encode(String.format("https://t.me/%s", BOT_USERNAME), StandardCharsets.UTF_8),
+                                URLEncoder.encode(reply.shareText, StandardCharsets.UTF_8),
                                 URLEncoder.encode(reply.imageUrl, StandardCharsets.UTF_8))));
                 inlineRows.add(row);
                 inlineMarkup.setKeyboard(inlineRows);

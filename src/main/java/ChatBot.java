@@ -59,7 +59,7 @@ class ChatBot {
                         return reply;
                     else {
                         return new ChatBotReply(reply.message + '\n' + nextQuiz,
-                                reply.imageUrl, reply.characterName);
+                                reply.imageUrl, reply.shareText);
                     }
                 }
                 else {

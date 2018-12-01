@@ -9,10 +9,10 @@ public class QuizDataSet {
     public String answers;
     public String quizGraph;
     public String answersIndexes;
-    public String characters;
+    public String results;
 
     public QuizDataSet(String name, String initialMessage, String shareText, String questions, String answers,
-                       String quizGraph, String answersIndexes, String characters) {
+                       String quizGraph, String answersIndexes, String results) {
         this.name = name;
         this.initialMessage = initialMessage;
         this.shareText = shareText;
@@ -20,11 +20,11 @@ public class QuizDataSet {
         this.answers = answers;
         this.quizGraph = quizGraph;
         this.answersIndexes = answersIndexes;
-        this.characters = characters;
+        this.results = results;
     }
 
     public QuizDataSet(int id, String name, String initialMessage, String shareText, String questions, String answers,
-                       String quizGraph, String answersIndexes, String characters) {
+                       String quizGraph, String answersIndexes, String results) {
         this.id = id;
         this.name = name;
         this.initialMessage = initialMessage;
@@ -33,6 +33,6 @@ public class QuizDataSet {
         this.answers = answers;
         this.quizGraph = quizGraph;
         this.answersIndexes = answersIndexes;
-        this.characters = characters;
+        this.results = results;
     }
 }

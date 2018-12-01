@@ -18,7 +18,7 @@ public class Quiz {
 
     ArrayList<ArrayList<DestinationNode>> quizGraph;
     Map<String, Integer> answersIndexes;
-    HashMap<String, HashMap<String, String>> characters;
+    HashMap<String, HashMap<String, String>> results;
 
     private DatabaseWorker db = new DatabaseWorker();
 
@@ -28,7 +28,7 @@ public class Quiz {
 
     Quiz(String name, String initialMessage, String shareText, Map<Integer, String> questions,
          ArrayList<String> answers, ArrayList<ArrayList<DestinationNode>> quizGraph,
-         Map<String, Integer> answersIndexes, HashMap<String, HashMap<String, String>> characters) {
+         Map<String, Integer> answersIndexes, HashMap<String, HashMap<String, String>> results) {
         this.name = name;
         this.initialMessage = initialMessage;
         this.shareText = shareText;
@@ -36,7 +36,7 @@ public class Quiz {
         this.answers = answers;
         this.quizGraph = quizGraph;
         this.answersIndexes = answersIndexes;
-        this.characters = characters;
+        this.results = results;
     }
 
     private void BuildQuiz(String data) throws QuizException {
@@ -47,7 +47,7 @@ public class Quiz {
             name = quizFile.name;
             initialMessage = quizFile.initialMessage;
             shareText = quizFile.shareText;
-            characters = quizFile.characters;
+            results = quizFile.results;
             questions.put(0, "");
             answers.add(0, "");
             quizGraph = new ArrayList<>();
