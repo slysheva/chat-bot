@@ -2,10 +2,7 @@ import com.esotericsoftware.yamlbeans.YamlException;
 import com.esotericsoftware.yamlbeans.YamlReader;
 import database.DatabaseWorker;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class Quiz {
@@ -53,16 +50,19 @@ public class Quiz {
             quizGraph = new ArrayList<>();
             answersIndexes = new HashMap<>();
             answersIndexes.put("", 0);
-            quizGraph.add(new ArrayList<>());
 
             for (var item : quizFile.questions)
                 questions.put(Integer.parseInt(item.get("id")) + 1, item.get("text"));
+
+            for (var i = 0; i < questions.size(); i++)
+            {
+                quizGraph.add(new ArrayList<>());
+            }
 
             var i = 0;
             for (var e : quizFile.answers) {
                 answers.add(e.get("text"));
                 answersIndexes.put(e.get("text"), i + 1);
-                quizGraph.add(new ArrayList<>());
                 int node = Integer.parseInt(e.get("from")) + 1;
                 DestinationNode nextNode = new DestinationNode(Integer.parseInt(e.get("to")) + 1,
                         i + 1);
@@ -95,8 +95,28 @@ public class Quiz {
         return answersList;
     }
 
-    // TODO: Написать алгоритм валидации графа
+    boolean dfs(int current, ArrayList<Integer> color, boolean hasCycle){
+        color.set(current, 1);
+        for (var i = 0; i < quizGraph.get(current).size(); i++){
+            if (color.get(quizGraph.get(current).get(i).Node) == 0) {
+                hasCycle = dfs(quizGraph.get(current).get(i).Node, color, hasCycle);
+            }
+            if (color.get(quizGraph.get(current).get(i).Node) == 1) {
+                hasCycle = true;
+            }
+        }
+        color.set(current, 2);
+        return hasCycle;
+    }
+
     boolean isValid() {
+        ArrayList<Integer> color = new ArrayList<>(Collections.nCopies(questions.size(), 0));
+
+        if (dfs(1, color, false))
+            return false;
+        for (var i = 1; i < questions.size(); i++)
+            if (color.get(i) != 2)
+                return false;
         return true;
     }
 }

@@ -13,13 +13,9 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -92,9 +88,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                 row.add(new InlineKeyboardButton()
                         .setText("Рассказать в VK")
                         .setUrl(String.format(vkShareUrl,
-                                URLEncoder.encode(String.format("https://t.me/%s", BOT_USERNAME), StandardCharsets.UTF_8),
-                                URLEncoder.encode(reply.shareText, StandardCharsets.UTF_8),
-                                URLEncoder.encode(reply.imageUrl, StandardCharsets.UTF_8))));
+                                URLEncoder.encode(String.format("https://t.me/%s", BOT_USERNAME), "UTF-8"),
+                                URLEncoder.encode(reply.shareText, "UTF-8"),
+                                URLEncoder.encode(reply.imageUrl, "UTF-8"))));
                 inlineRows.add(row);
                 inlineMarkup.setKeyboard(inlineRows);
                 sendPhoto.setReplyMarkup(inlineMarkup);
@@ -102,7 +98,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 execute(sendPhoto);
             }
             execute(sendMessage);
-        } catch (TelegramApiException e) {
+        } catch (TelegramApiException | UnsupportedEncodingException e) {
             e.printStackTrace();
         }
     }
