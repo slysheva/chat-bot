@@ -63,7 +63,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 String content = getFileContent(update.getMessage().getEntities().get(0).getText());
                 reply = chatBot.addQuiz(content);
             }
-            else if (update.getMessage().hasDocument()) {
+            else if (update.getMessage().hasDocument() && update.getMessage().getDocument().getMimeType().equals("application/x-yaml")) {
                 reply = chatBot.addQuiz(getFileContent(update.getMessage().getDocument()));
             }
             else {
