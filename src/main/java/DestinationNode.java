@@ -1,4 +1,4 @@
-class DestinationNode {
+public class DestinationNode {
     int Node;
     int Edge;
 
