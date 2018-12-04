@@ -80,6 +80,8 @@ class ChatBot {
 
     ChatBotReply addQuiz(String content) {
         try {
+            if (content == null)
+                return new ChatBotReply(quizParseError);
             Quiz quiz = new Quiz(content);
             db.addQuiz(Serializer.serialize(quiz));
         } catch (QuizException e) {

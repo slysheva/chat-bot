@@ -1,7 +1,10 @@
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.Document;
+import org.telegram.telegrambots.meta.api.objects.File;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -11,6 +14,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -18,6 +22,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class TelegramBot extends TelegramLongPollingBot {
     private static ChatBot chatBot;
@@ -57,6 +62,9 @@ public class TelegramBot extends TelegramLongPollingBot {
             if (update.getMessage().hasEntities() && update.getMessage().getEntities().get(0).getType().equals("url")) {
                 String content = getFileContent(update.getMessage().getEntities().get(0).getText());
                 reply = chatBot.addQuiz(content);
+            }
+            else if (update.getMessage().hasDocument()) {
+                reply = chatBot.addQuiz(getFileContent(update.getMessage().getDocument()));
             }
             else {
                 reply = chatBot.answer(update.getMessage().getText(), update.getMessage().getFrom().getId());
@@ -116,7 +124,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     private String getFileContent(String url) {
-                try {
+        try {
             URL fileUrl = new URL(url);
             BufferedReader in = new BufferedReader(new InputStreamReader(fileUrl.openStream()));
             String inputLine;
@@ -128,6 +136,25 @@ public class TelegramBot extends TelegramLongPollingBot {
             in.close();
             return content.toString();
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    private String getFileContent(Document document) {
+        try {
+            GetFile getFile = new GetFile();
+            getFile.setFileId(document.getFileId());
+            File filePath = execute(getFile);
+            java.io.File file = downloadFile(filePath);
+
+            Scanner scanner = new Scanner(file).useDelimiter("\\Z");
+            String content = scanner.next();
+            scanner.close();
+
+            return content;
+        } catch (TelegramApiException | FileNotFoundException e) {
             e.printStackTrace();
         }
 
