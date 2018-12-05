@@ -95,28 +95,29 @@ public class Quiz {
         return answersList;
     }
 
-    boolean dfs(int current, ArrayList<Integer> color, boolean hasCycle){
+    void dfs(int current, ArrayList<Integer> color) throws QuizException {
         color.set(current, 1);
         for (var i = 0; i < quizGraph.get(current).size(); i++){
             if (color.get(quizGraph.get(current).get(i).Node) == 0) {
-                hasCycle = dfs(quizGraph.get(current).get(i).Node, color, hasCycle);
+                dfs(quizGraph.get(current).get(i).Node, color);
             }
             if (color.get(quizGraph.get(current).get(i).Node) == 1) {
-                hasCycle = true;
+                throw new QuizException();
             }
         }
+        if (quizGraph.get(current).size() == 0 && !results.containsKey(questions.get(current)))
+        {
+            throw new QuizException();
+        }
         color.set(current, 2);
-        return hasCycle;
     }
 
-    boolean isValid() {
+    void checkValidity() throws QuizException{
         ArrayList<Integer> color = new ArrayList<>(Collections.nCopies(questions.size(), 0));
 
-        if (dfs(1, color, false))
-            return false;
+        dfs(1, color);
         for (var i = 1; i < questions.size(); i++)
             if (color.get(i) != 2)
-                return false;
-        return true;
+                throw new QuizException();
     }
 }
