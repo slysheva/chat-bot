@@ -75,7 +75,10 @@ public class Quiz {
             db.initDatabase();
         } catch (YamlException e)
         {
-            throw new QuizException();
+            throw new QuizException("Некорректный формат файла.");
+        }
+        catch (IndexOutOfBoundsException e) {
+            throw new QuizException("Обращение к несуществующему индексу графа.");
         }
     }
 
@@ -102,12 +105,12 @@ public class Quiz {
                 dfs(quizGraph.get(current).get(i).Node, color);
             }
             if (color.get(quizGraph.get(current).get(i).Node) == 1) {
-                throw new QuizException();
+                throw new QuizException("Обнаружен цикл в графе.");
             }
         }
         if (quizGraph.get(current).size() == 0 && !results.containsKey(questions.get(current)))
         {
-            throw new QuizException();
+            throw new QuizException("Опрос завершается в нефинальной вершине.");
         }
         color.set(current, 2);
     }
@@ -118,6 +121,6 @@ public class Quiz {
         dfs(1, color);
         for (var i = 1; i < questions.size(); i++)
             if (color.get(i) != 2)
-                throw new QuizException();
+                throw new QuizException("Несвязный граф.");
     }
 }

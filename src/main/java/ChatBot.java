@@ -18,7 +18,7 @@ class ChatBot {
     protected final String start = "Привет! Чтобы пройти опрос, выбери его из списка. Чтобы добавить новый опрос, " +
                                    "напиши /add";
     protected final String addQuiz = "Чтобы добавить новый опрос, пришли мне его в виде текстового файла";
-    protected final String quizParseError = "Произошла ошибка во время обработки файла. Попробуй ещё раз";
+    protected final String quizParseError = "Произошла ошибка во время обработки файла. %s";
     protected final String quizAdded = "Опрос успешно добавлен!";
     protected final String unrecognized = "Сообщение не распознано. Попробуй ещё раз";
     protected final String quizzesList = "Вот список доступных опросов:";
@@ -86,7 +86,7 @@ class ChatBot {
             quiz.checkValidity();
             db.addQuiz(Serializer.serialize(quiz));
         } catch (QuizException e) {
-            return new ChatBotReply(quizParseError);
+            return new ChatBotReply(String.format(quizParseError, e.message));
         }
         return new ChatBotReply(quizAdded);
     }
