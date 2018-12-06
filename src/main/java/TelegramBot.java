@@ -1,3 +1,4 @@
+import database.DatabaseWorker;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
@@ -23,33 +24,25 @@ import java.util.Scanner;
 public class TelegramBot extends TelegramLongPollingBot {
     private static ChatBot chatBot;
 
-    private static String BOT_USERNAME;
-    private static String BOT_TOKEN;
+    private static String botUsername;
+    private static String botToken;
 
     private final ReplyKeyboardRemove noKeyboard = new ReplyKeyboardRemove();
 
     protected final String vkShareUrl = "https://vk.com/share.php?url=%s&title=%s&image=%s";
 
-    TelegramBot(DefaultBotOptions botOptions) {
+    TelegramBot(String username, String token, DefaultBotOptions botOptions, DatabaseWorker db) {
         super(botOptions);
-        chatBot = new ChatBot();
-        try {
-            BOT_USERNAME = System.getenv("BOT_USERNAME");
-            BOT_TOKEN = System.getenv("BOT_TOKEN");
-        }
-        catch (NumberFormatException e) {
-            System.out.println("Please set bot credentials!");
-            System.exit(0);
-        }
+        chatBot = new ChatBot(username, db);
+        botUsername = username;
+        botToken = token;
     }
 
     @Override
-    public String getBotUsername() {
-        return BOT_USERNAME;
-    }
+    public String getBotUsername() { return botUsername; }
 
     @Override
-    public String getBotToken() { return BOT_TOKEN; }
+    public String getBotToken() { return botToken; }
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -88,7 +81,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 row.add(new InlineKeyboardButton()
                         .setText("Рассказать в VK")
                         .setUrl(String.format(vkShareUrl,
-                                URLEncoder.encode(String.format("https://t.me/%s", BOT_USERNAME), "UTF-8"),
+                                URLEncoder.encode(String.format("https://t.me/%s", botUsername), "UTF-8"),
                                 URLEncoder.encode(reply.shareText, "UTF-8"),
                                 URLEncoder.encode(reply.imageUrl, "UTF-8"))));
                 inlineRows.add(row);

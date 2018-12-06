@@ -17,9 +17,10 @@ public class Quiz {
     Map<String, Integer> answersIndexes;
     HashMap<String, HashMap<String, String>> results;
 
-    private DatabaseWorker db = new DatabaseWorker();
+    private DatabaseWorker db;
 
-    Quiz(String quizData) throws QuizException {
+    Quiz(String quizData, DatabaseWorker db) throws QuizException {
+        this.db = db;
         BuildQuiz(quizData);
     }
 
@@ -105,12 +106,13 @@ public class Quiz {
                 dfs(quizGraph.get(current).get(i).Node, color);
             }
             if (color.get(quizGraph.get(current).get(i).Node) == 1) {
-                throw new QuizException("Обнаружен цикл в графе.");
+                throw new QuizException(String.format("Обнаружен цикл в графе. Ребро (%d-%d).", current, i));
             }
         }
         if (quizGraph.get(current).size() == 0 && !results.containsKey(questions.get(current)))
         {
-            throw new QuizException("Опрос завершается в нефинальной вершине.");
+            throw new QuizException(String.format("Опрос завершается в нефинальной вершине. " +
+                    "Вершина %d не находится в списке ответов.", current));
         }
         color.set(current, 2);
     }
@@ -121,6 +123,6 @@ public class Quiz {
         dfs(1, color);
         for (var i = 1; i < questions.size(); i++)
             if (color.get(i) != 2)
-                throw new QuizException("Несвязный граф.");
+                throw new QuizException(String.format("Несвязный граф. Ошибка на вершине %d.", i));
     }
 }

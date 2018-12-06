@@ -7,10 +7,14 @@ import java.util.ArrayList;
 
 public class DatabaseWorker {
     private Connection c;
+    private String dbUrl;
+
+    public DatabaseWorker(String dbUrl) {
+        this.dbUrl = dbUrl;
+    }
 
     public void connect() {
         try {
-            String dbUrl = System.getenv("JDBC_DATABASE_URL");
             c = DriverManager.getConnection(dbUrl);
             initDatabase();
         } catch (Exception e) {

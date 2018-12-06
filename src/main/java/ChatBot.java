@@ -9,7 +9,6 @@ class ChatBot {
     private QuizRunner runner;
     private DatabaseWorker db;
 
-    // TODO: Подумать, как можно вынести все эти строки, нужно ли это
     protected final String quizNotActive = "Игра ещё не началась. Чтобы посмотреть " +
                                            "список доступных опросов, напиши команду /start";
     protected final String quizEnded = "Игра закончена. Чтобы начать заново, напиши /start";
@@ -23,13 +22,14 @@ class ChatBot {
     protected final String unrecognized = "Сообщение не распознано. Попробуй ещё раз";
     protected final String quizzesList = "Вот список доступных опросов:";
     protected final String quizNotFound = "Опрос на найден. Попробуйте пройти другой";
+    protected final String invited = "Привет! Давай пройдём опрос, который тебе прислал твой друг.\n\n";
 
     protected final Pattern quizSelection = Pattern.compile("[0-9]+:[ A-Za-zА-Яа-я?,.-]+");
 
-    ChatBot() {
-        runner = new QuizRunner();
-        db = new DatabaseWorker();
-        db.connect();
+    ChatBot(String botUsername, DatabaseWorker db) {
+        runner = new QuizRunner(botUsername, db);
+        this.db = db;
+        this.db.connect();
     }
 
     ChatBotReply answer(String message, int userId) {
@@ -66,11 +66,16 @@ class ChatBot {
                     Matcher m = quizSelection.matcher(message);
                     if (m.matches()) {
                         int quizId = Integer.parseInt(message.split(":")[0]);
-                        if (!runner.start(userId, quizId))
-                            return new ChatBotReply(quizNotFound, getQuizzesList());
-                        ChatBotReply firstQuestion = runner.proceedRequest("", userId);
-                        return new ChatBotReply(runner.getInitialMessage(quizId) +
-                                '\n' + firstQuestion.message, firstQuestion.keyboardOptions);
+                        return startQuiz(userId, quizId, false);
+                    }
+                    else if (message.startsWith("/start")) {
+                        try {
+                            int quizId = Integer.parseInt(message.split(" ")[1]);
+                            return startQuiz(userId, quizId, true);
+                        }
+                        catch (Exception e) {
+                            return new ChatBotReply(start, getQuizzesList());
+                        }
                     }
                     else
                         return new ChatBotReply(unrecognized);
@@ -78,11 +83,23 @@ class ChatBot {
         }
     }
 
+    ChatBotReply startQuiz(int userId, int quizId, boolean fromInvite) {
+        if (!runner.start(userId, quizId))
+            return new ChatBotReply(quizNotFound, getQuizzesList());
+        ChatBotReply firstQuestion = runner.proceedRequest("", userId);
+        if (fromInvite)
+            return new ChatBotReply(invited + runner.getInitialMessage(quizId) +
+                    '\n' + firstQuestion.message, firstQuestion.keyboardOptions);
+        else
+            return new ChatBotReply(runner.getInitialMessage(quizId) +
+                '\n' + firstQuestion.message, firstQuestion.keyboardOptions);
+    }
+
     ChatBotReply addQuiz(String content) {
         try {
             if (content == null)
                 return new ChatBotReply(quizParseError);
-            Quiz quiz = new Quiz(content);
+            Quiz quiz = new Quiz(content, db);
             quiz.checkValidity();
             db.addQuiz(Serializer.serialize(quiz));
         } catch (QuizException e) {

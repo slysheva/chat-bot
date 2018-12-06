@@ -5,12 +5,16 @@ import org.glassfish.grizzly.utils.Pair;
 import java.util.Objects;
 
 public class QuizRunner implements IGame {
-    private DatabaseWorker db = new DatabaseWorker();
+    private DatabaseWorker db;
+    private String botUsername;
 
     protected final String noSuchAnswer = "Такого варианта ответа нет. Попробуй ещё раз";
     protected final String quizFinished = "Тест пройден. ";
+    protected final String inviteFriend = "\n\nПригласи друга пройти опрос, отправив эту ссылку: https://t.me/%s?start=%d";
 
-    QuizRunner() {
+    QuizRunner(String botUsername, DatabaseWorker db) {
+        this.botUsername = botUsername;
+        this.db = db;
         db.connect();
     }
 
@@ -31,8 +35,9 @@ public class QuizRunner implements IGame {
         currentQuestionId = quiz.getNextQuestionIndex(quiz.answersIndexes.get(request), currentQuestionId);
         if (quiz.quizGraph.get(currentQuestionId).size() == 0) {
             stop(userId);
+            String inviteText = String.format(inviteFriend, botUsername, currentQuizId);
             String resultName = quiz.questions.get(currentQuestionId);
-            return new ChatBotReply(String.format(quizFinished + quiz.results.get(resultName).get("description"),
+            return new ChatBotReply(String.format(quizFinished + quiz.results.get(resultName).get("description") + inviteText,
                     resultName),
                     quiz.results.get(resultName).get("image"),
                     String.format(quiz.shareText, resultName));
