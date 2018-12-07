@@ -21,10 +21,10 @@ class ChatBot {
     protected final String quizzesList = "Вот список доступных опросов:";
     protected final String quizNotFound = "Опрос на найден. Попробуйте пройти другой";
     protected final String invited = "Привет! Давай пройдём опрос, который тебе прислал твой друг.\n\n";
-    protected final String btnAddQuiz = "Добавить опрос";
-    protected final String btnListQuiz = "Список опросов";
-    protected final String btnAddAdmin = "Добавить админа";
-    protected final String btnCancel = "Отмена";
+    protected final String btnAddQuiz = "➕ Добавить опрос";
+    protected final String btnListQuiz = "❓ Список опросов";
+    protected final String btnAddAdmin = "✨ Добавить админа";
+    protected final String btnCancel = "❌ Отмена";
     protected final String stateAddAdmin = "add-admin";
     protected final String addAdmin = "Пришлите id нового администратора.";
     protected final String incorrectAdminId = "Пожалуйста, укажите корректный id.";
