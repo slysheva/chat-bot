@@ -79,7 +79,8 @@ public class Quiz {
             throw new QuizException("Некорректный формат файла.");
         }
         catch (IndexOutOfBoundsException e) {
-            throw new QuizException("Обращение к несуществующему индексу графа.");
+            throw new QuizException(String.format("Обращение к несуществующему индексу графа: %d.",
+                    Integer.parseInt(e.getMessage().split(" ")[1]) - 1));
         }
     }
 
@@ -99,14 +100,31 @@ public class Quiz {
         return answersList;
     }
 
-    void dfs(int current, ArrayList<Integer> color) throws QuizException {
+    String getCycle(ArrayList<Integer> parent, int startNode)
+    {
+        var saveStart = startNode;
+        List<String> Cycle = new ArrayList<>(Arrays.asList(String.valueOf(startNode)));
+        startNode = parent.get(startNode);
+        while(startNode != saveStart)
+        {
+            Cycle.add(String.valueOf(startNode));
+            startNode = parent.get(startNode);
+        }
+        Cycle.add(String.valueOf(startNode));
+        return String.join("-", Cycle);
+    }
+
+
+    void dfs(int current, ArrayList<Integer> color, ArrayList<Integer> parent) throws QuizException {
         color.set(current, 1);
         for (var i = 0; i < quizGraph.get(current).size(); i++){
+            parent.set(quizGraph.get(current).get(i).Node, current);
             if (color.get(quizGraph.get(current).get(i).Node) == 0) {
-                dfs(quizGraph.get(current).get(i).Node, color);
+                dfs(quizGraph.get(current).get(i).Node, color, parent);
             }
             if (color.get(quizGraph.get(current).get(i).Node) == 1) {
-                throw new QuizException(String.format("Обнаружен цикл в графе. Ребро (%d-%d).", current, i));
+                var cycle = getCycle(parent, quizGraph.get(current).get(i).Node);
+                throw new QuizException(String.format("Обнаружен цикл в графе. Цикл %s.", cycle));
             }
         }
         if (quizGraph.get(current).size() == 0 && !results.containsKey(questions.get(current)))
@@ -119,8 +137,9 @@ public class Quiz {
 
     void checkValidity() throws QuizException{
         ArrayList<Integer> color = new ArrayList<>(Collections.nCopies(questions.size(), 0));
+        ArrayList<Integer> parent = new ArrayList<>(Collections.nCopies(questions.size(), null));
 
-        dfs(1, color);
+        dfs(1, color, parent);
         for (var i = 1; i < questions.size(); i++)
             if (color.get(i) != 2)
                 throw new QuizException(String.format("Несвязный граф. Ошибка на вершине %d.", i));
