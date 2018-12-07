@@ -28,14 +28,17 @@ class ChatBot {
     protected final String stateAddAdmin = "add-admin";
     protected final String addAdmin = "Пришлите id нового администратора.";
     protected final String incorrectAdminId = "Пожалуйста, укажите корректный id.";
-    protected final String returnToHome = "Возвращаемся в главное меню.";
-    protected final String adminAdded = "Администратор добавлен.\n";
+    protected final String returnToHome = "\nВозвращаемся в главное меню.";
+    protected final String adminAdded = "Администратор добавлен.";
+    protected final String quizDeleted = "Опрос успешно удалён";
+    protected final String noQuizzes = "Нет доступных опросов";
+
 
     protected final Pattern quizSelection = Pattern.compile("[0-9]+:[ A-Za-zА-Яа-я?,.-]+");
 
-    protected final List<String> adminKeyboard = Arrays.asList(btnListQuiz, btnAddQuiz, btnAddAdmin);
-    protected final List<String> userKeyboard = Arrays.asList(btnListQuiz, btnAddQuiz);
-    protected final List<String> cancelKeyboard = Collections.singletonList(btnCancel);
+    protected final List<List<String>> adminKeyboard = new ArrayList<>();
+    protected final List<List<String>> userKeyboard = new ArrayList<>();
+    protected final List<List<String>> cancelKeyboard = new ArrayList<>();
 
     protected HashMap<Long, String> state = new HashMap<>();
 
@@ -43,6 +46,9 @@ class ChatBot {
         runner = new QuizRunner(botUsername, db);
         this.db = db;
         this.db.connect();
+        cancelKeyboard.add(Collections.singletonList(btnCancel));
+        adminKeyboard.add(Arrays.asList(btnListQuiz, btnAddQuiz, btnAddAdmin));
+        userKeyboard.add(Arrays.asList(btnListQuiz, btnAddQuiz));
     }
 
     ChatBotReply answer(String message, long userId) {
@@ -81,7 +87,10 @@ class ChatBot {
                     return new ChatBotReply(addQuiz);
             case "/list":
             case btnListQuiz:
-                return new ChatBotReply(quizzesList, getQuizzesList());
+                var allQuizzes = getQuizzesList(db.isAdmin(userId));
+                if (allQuizzes.size() == 0)
+                    return new ChatBotReply(noQuizzes + returnToHome, getKeyboard(userId));
+                return new ChatBotReply(quizzesList, allQuizzes);
             case "/stop":
             case "стоп":
                 if (!runner.isActive(userId))
@@ -110,9 +119,16 @@ class ChatBot {
                             int quizId = Integer.parseInt(message.split(" ")[1]);
                             return startQuiz(userId, quizId, true);
                         } catch (Exception e) {
-                            return new ChatBotReply(start, getQuizzesList());
+                            return new ChatBotReply(start, getQuizzesList(db.isAdmin(userId)));
                         }
-                    } else
+                    }
+                    else if (message.startsWith("DELETE")) {
+                        if (!db.isAdmin(userId))
+                            return new ChatBotReply(unrecognized);
+                        db.deleteQuiz(Integer.parseInt(message.split(" ")[1]));
+                        return new ChatBotReply(quizDeleted + returnToHome, getKeyboard(userId));
+                    }
+                    else
                         return new ChatBotReply(unrecognized);
                 }
         }
@@ -120,7 +136,7 @@ class ChatBot {
 
     ChatBotReply startQuiz(long userId, int quizId, boolean fromInvite) {
         if (!runner.start(userId, quizId))
-            return new ChatBotReply(quizNotFound, getQuizzesList());
+            return new ChatBotReply(quizNotFound, getQuizzesList(db.isAdmin(userId)));
         ChatBotReply firstQuestion = runner.proceedRequest("", userId);
         if (fromInvite)
             return new ChatBotReply(invited + runner.getInitialMessage(quizId) +
@@ -130,7 +146,7 @@ class ChatBot {
                     '\n' + firstQuestion.message, firstQuestion.keyboardOptions);
     }
 
-    ChatBotReply addQuiz(String content) {
+    ChatBotReply addQuiz(String content, long userId) {
         try {
             if (content == null)
                 return new ChatBotReply(quizParseError);
@@ -140,19 +156,24 @@ class ChatBot {
         } catch (QuizException e) {
             return new ChatBotReply(String.format(quizParseError, e.message));
         }
-        return new ChatBotReply(quizAdded);
+        return new ChatBotReply(quizAdded + returnToHome, getKeyboard(userId));
     }
 
-    List<String> getQuizzesList() {
+    List<List<String>> getQuizzesList(boolean isAdmin) {
         var quizzes = db.getQuizzesList();
-        List<String> options = new ArrayList<>();
+        List<List<String>> options = new ArrayList<>();
         for (var e : quizzes) {
-            options.add(String.format("%s: %s", e.getFirst(), e.getSecond()));
+            options.add(new ArrayList<>());
+            options.get(options.size() - 1).add(String.format("%s: %s", e.getFirst(), e.getSecond()));
+            if (isAdmin)
+            {
+                options.get(options.size() - 1).add(String.format("DELETE %s", e.getFirst()));
+            }
         }
         return options;
     }
 
-    List<String> getKeyboard(long userId) {
+    List<List<String>> getKeyboard(long userId) {
         return db.isAdmin(userId) ? adminKeyboard : userKeyboard;
     }
 }

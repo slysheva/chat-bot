@@ -51,10 +51,10 @@ public class TelegramBot extends TelegramLongPollingBot {
             ChatBotReply reply;
             if (update.getMessage().hasEntities() && update.getMessage().getEntities().get(0).getType().equals("url")) {
                 String content = getFileContent(update.getMessage().getEntities().get(0).getText());
-                reply = chatBot.addQuiz(content);
+                reply = chatBot.addQuiz(content, update.getMessage().getFrom().getId());
             }
             else if (update.getMessage().hasDocument() && update.getMessage().getDocument().getMimeType().equals("application/x-yaml")) {
-                reply = chatBot.addQuiz(getFileContent(update.getMessage().getDocument()));
+                reply = chatBot.addQuiz(getFileContent(update.getMessage().getDocument()), update.getMessage().getFrom().getId());
             }
             else {
                 reply = chatBot.answer(update.getMessage().getText(), update.getMessage().getFrom().getId());
@@ -97,15 +97,17 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
-    private ReplyKeyboardMarkup makeKeyboard(List<String> options) {
+    private ReplyKeyboardMarkup makeKeyboard(List<List<String>> options) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         replyKeyboardMarkup.setResizeKeyboard(true);
         replyKeyboardMarkup.setOneTimeKeyboard(true);
 
         List<KeyboardRow> keyboardRows = new ArrayList<>();
-        for (String row : options) {
+        for (var line : options) {
             KeyboardRow keyboardRow = new KeyboardRow();
-            keyboardRow.add(row);
+            for (String part : line) {
+                keyboardRow.add(part);
+            }
             keyboardRows.add(keyboardRow);
         }
 

@@ -124,6 +124,19 @@ public class DatabaseWorker {
         }
     }
 
+    public void deleteQuiz(int quizId)
+    {
+        try {
+            PreparedStatement stmt = c.prepareStatement("DELETE FROM quizzes WHERE id = ?");
+            stmt.setInt(1, quizId);
+            stmt.executeUpdate();
+            stmt.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     public ArrayList<Pair<Integer, String>> getQuizzesList() {
         try {
             checkConnection();
