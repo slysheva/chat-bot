@@ -2,7 +2,7 @@ import java.util.List;
 
 class ChatBotReply {
     String message;
-    List<String> keyboardOptions;
+    List<List<String>> keyboardOptions;
     String imageUrl;
     String shareText;
 
@@ -13,7 +13,7 @@ class ChatBotReply {
         shareText = null;
     }
 
-    ChatBotReply(String message, List<String> options) {
+    ChatBotReply(String message, List<List<String>> options) {
         this.message = message;
         keyboardOptions = options;
         imageUrl = null;

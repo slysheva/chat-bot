@@ -17,6 +17,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.io.*;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -50,10 +51,10 @@ public class TelegramBot extends TelegramLongPollingBot {
             ChatBotReply reply;
             if (update.getMessage().hasEntities() && update.getMessage().getEntities().get(0).getType().equals("url")) {
                 String content = getFileContent(update.getMessage().getEntities().get(0).getText());
-                reply = chatBot.addQuiz(content);
+                reply = chatBot.addQuiz(content, update.getMessage().getFrom().getId());
             }
             else if (update.getMessage().hasDocument() && update.getMessage().getDocument().getMimeType().equals("application/x-yaml")) {
-                reply = chatBot.addQuiz(getFileContent(update.getMessage().getDocument()));
+                reply = chatBot.addQuiz(getFileContent(update.getMessage().getDocument()), update.getMessage().getFrom().getId());
             }
             else {
                 reply = chatBot.answer(update.getMessage().getText(), update.getMessage().getFrom().getId());
@@ -81,9 +82,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                 row.add(new InlineKeyboardButton()
                         .setText("Рассказать в VK")
                         .setUrl(String.format(vkShareUrl,
-                                URLEncoder.encode(String.format("https://t.me/%s", botUsername), "UTF-8"),
-                                URLEncoder.encode(reply.shareText, "UTF-8"),
-                                URLEncoder.encode(reply.imageUrl, "UTF-8"))));
+                                URLEncoder.encode(String.format("https://t.me/%s", botUsername), StandardCharsets.UTF_8),
+                                URLEncoder.encode(reply.shareText, StandardCharsets.UTF_8),
+                                URLEncoder.encode(reply.imageUrl, StandardCharsets.UTF_8))));
                 inlineRows.add(row);
                 inlineMarkup.setKeyboard(inlineRows);
                 sendPhoto.setReplyMarkup(inlineMarkup);
@@ -91,20 +92,22 @@ public class TelegramBot extends TelegramLongPollingBot {
                 execute(sendPhoto);
             }
             execute(sendMessage);
-        } catch (TelegramApiException | UnsupportedEncodingException e) {
+        } catch (TelegramApiException e) {
             e.printStackTrace();
         }
     }
 
-    private ReplyKeyboardMarkup makeKeyboard(List<String> options) {
+    private ReplyKeyboardMarkup makeKeyboard(List<List<String>> options) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         replyKeyboardMarkup.setResizeKeyboard(true);
         replyKeyboardMarkup.setOneTimeKeyboard(true);
 
         List<KeyboardRow> keyboardRows = new ArrayList<>();
-        for (String row : options) {
+        for (var line : options) {
             KeyboardRow keyboardRow = new KeyboardRow();
-            keyboardRow.add(row);
+            for (String part : line) {
+                keyboardRow.add(part);
+            }
             keyboardRows.add(keyboardRow);
         }
 

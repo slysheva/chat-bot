@@ -40,24 +40,29 @@ public class DatabaseWorker {
 
             Statement stmt = c.createStatement();
             String quiz = "CREATE TABLE IF NOT EXISTS quiz(" +
-                          "id INT PRIMARY KEY NOT NULL, " +
-                          "current_quiz_id INT NOT NULL, " +
-                          "current_question_id INT NOT NULL, " +
-                          "game_active BOOLEAN)";
+                    "id BIGINT PRIMARY KEY NOT NULL, " +
+                    "current_quiz_id INT NOT NULL, " +
+                    "current_question_id INT NOT NULL, " +
+                    "game_active BOOLEAN)";
             stmt.executeUpdate(quiz);
 
             String quizzes = "CREATE TABLE IF NOT EXISTS quizzes(" +
-                             "id SERIAL PRIMARY KEY NOT NULL, " +
-                             "name TEXT NOT NULL, " +
-                             "initial_message TEXT NOT NULL, " +
-                             "share_text TEXT NOT NULL, " +
-                             "questions TEXT NOT NULL, " +
-                             "answers TEXT NOT NULL, " +
-                             "quiz_graph TEXT NOT NULL, " +
-                             "answers_indexes TEXT NOT NULL, " +
-                             "results TEXT NOT NULL)";
+                    "id SERIAL PRIMARY KEY NOT NULL, " +
+                    "name TEXT NOT NULL, " +
+                    "initial_message TEXT NOT NULL, " +
+                    "share_text TEXT NOT NULL, " +
+                    "questions TEXT NOT NULL, " +
+                    "answers TEXT NOT NULL, " +
+                    "quiz_graph TEXT NOT NULL, " +
+                    "answers_indexes TEXT NOT NULL, " +
+                    "results TEXT NOT NULL)";
             stmt.executeUpdate(quizzes);
+
+            String admins = "CREATE TABLE IF NOT EXISTS admins(" +
+                    "id BIGINT PRIMARY KEY NOT NULL)";
+            stmt.executeUpdate(admins);
             stmt.close();
+
         }
         catch (SQLException e) {
             e.printStackTrace();
@@ -65,13 +70,43 @@ public class DatabaseWorker {
         }
     }
 
+    public void addAdmin(long userId) {
+        try {
+            checkConnection();
+
+            if (isAdmin(userId))
+                return;
+            PreparedStatement stmt = c.prepareStatement("INSERT INTO admins VALUES (?);");
+            stmt.setLong(1, userId);
+            stmt.executeUpdate();
+            stmt.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean isAdmin(long userId) {
+        try {
+            checkConnection();
+
+            PreparedStatement stmt = c.prepareStatement("SELECT COUNT(*) FROM admins WHERE id = ?;");
+            stmt.setLong(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next())
+                return rs.getInt("count") > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public void addQuiz(QuizDataSet quiz) {
         try {
             checkConnection();
 
             PreparedStatement stmt = c.prepareStatement("INSERT INTO quizzes(name, initial_message, share_text, " +
-                                                           "questions, answers, quiz_graph, answers_indexes, " +
-                                                           "results) VALUES (?, ?, ?, ?, ?, ?, ?, ?);");
+                    "questions, answers, quiz_graph, answers_indexes, " +
+                    "results) VALUES (?, ?, ?, ?, ?, ?, ?, ?);");
             stmt.setString(1, quiz.name);
             stmt.setString(2, quiz.initialMessage);
             stmt.setString(3, quiz.shareText);
@@ -88,6 +123,19 @@ public class DatabaseWorker {
             System.exit(1);
         }
     }
+
+    public void deleteQuiz(int quizId)
+    {
+        try {
+            PreparedStatement stmt = c.prepareStatement("DELETE FROM quizzes WHERE id = ?");
+            stmt.setInt(1, quizId);
+            stmt.executeUpdate();
+            stmt.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public ArrayList<Pair<Integer, String>> getQuizzesList() {
         try {
@@ -110,12 +158,12 @@ public class DatabaseWorker {
         return null;
     }
 
-    public QuizDataSet getQuiz(int quizId) {
+    public QuizDataSet getQuiz(long quizId) {
         try {
             checkConnection();
 
             PreparedStatement stmt = c.prepareStatement("SELECT * FROM quizzes WHERE id = ?;");
-            stmt.setInt(1, quizId);
+            stmt.setLong(1, quizId);
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
@@ -133,12 +181,12 @@ public class DatabaseWorker {
         return null;
     }
 
-    public Pair<Integer, Integer> getCurrentQuizState(int userId) {
+    public Pair<Integer, Integer> getCurrentQuizState(long userId) {
         try {
             checkConnection();
 
             PreparedStatement stmt = c.prepareStatement("SELECT * FROM quiz WHERE id = ?;");
-            stmt.setInt(1, userId);
+            stmt.setLong(1, userId);
             ResultSet rs = stmt.executeQuery();
 
             if(rs.next()) {
@@ -158,12 +206,12 @@ public class DatabaseWorker {
         return null;
     }
 
-    public boolean quizExists(int quizId) {
+    public boolean quizExists(long quizId) {
         try {
             checkConnection();
 
-            PreparedStatement stmt = c.prepareStatement("SELECT count(*) FROM quizzes WHERE id = ?;");
-            stmt.setInt(1, quizId);
+            PreparedStatement stmt = c.prepareStatement("SELECT COUNT(*) FROM quizzes WHERE id = ?;");
+            stmt.setLong(1, quizId);
 
             ResultSet rs = stmt.executeQuery();
             if (rs.next())
@@ -176,14 +224,14 @@ public class DatabaseWorker {
         return false;
     }
 
-    public void updateCurrentQuestionId(int userId, int currentQuestionId) {
+    public void updateCurrentQuestionId(long userId, int currentQuestionId) {
         try {
             checkConnection();
 
             PreparedStatement stmt;
             stmt = c.prepareStatement("UPDATE quiz SET current_question_id = ? WHERE id = ?");
             stmt.setInt(1, currentQuestionId);
-            stmt.setInt(2, userId);
+            stmt.setLong(2, userId);
 
             stmt.executeUpdate();
             stmt.close();
@@ -194,12 +242,12 @@ public class DatabaseWorker {
         }
     }
 
-    private void runSql (int userId, String query) {
+    private void runSql (long userId, String query) {
         try {
             checkConnection();
 
             PreparedStatement stmt = c.prepareStatement(query);
-            stmt.setInt(1, userId);
+            stmt.setLong(1, userId);
             stmt.executeUpdate();
             stmt.close();
         }
@@ -214,12 +262,12 @@ public class DatabaseWorker {
             reconnect();
     }
 
-    private void createGameData(int userId, int quizId) {
+    private void createGameData(long userId, int quizId) {
         try {
             checkConnection();
 
             PreparedStatement stmt = c.prepareStatement("INSERT INTO quiz VALUES(?, ?, 0, TRUE)");
-            stmt.setInt(1, userId);
+            stmt.setLong(1, userId);
             stmt.setInt(2, quizId);
             stmt.executeUpdate();
             stmt.close();
@@ -229,26 +277,26 @@ public class DatabaseWorker {
         }
     }
 
-    public void markGameActive(int userId, int quizId) {
+    public void markGameActive(long userId, int quizId) {
         destroyGameData(userId);
         createGameData(userId, quizId);
     }
 
-    public void markGameInactive(int userId) {
+    public void markGameInactive(long userId) {
         runSql(userId, "UPDATE quiz SET game_active = FALSE WHERE id = ?");
     }
 
-    private void destroyGameData(int userId) {
+    private void destroyGameData(long userId) {
         runSql(userId, "DELETE FROM quiz WHERE id = ?");
     }
 
-    public boolean isGameActive(int userId) {
+    public boolean isGameActive(long userId) {
         try {
             if (c.isClosed())
                 reconnect();
 
             PreparedStatement stmt = c.prepareStatement("SELECT game_active FROM quiz WHERE id = ?;");
-            stmt.setInt(1, userId);
+            stmt.setLong(1, userId);
 
             ResultSet rs = stmt.executeQuery();
 

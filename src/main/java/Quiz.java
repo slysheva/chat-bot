@@ -92,10 +92,11 @@ public class Quiz {
         return  0;
     }
 
-    List<String> getAnswersList(int currentQuestionId){
-        List<String> answersList = new ArrayList<>();
-        for (DestinationNode item : quizGraph.get(currentQuestionId)){
-            answersList.add(answers.get(item.Edge));
+    List<List<String>> getAnswersList(int currentQuestionId){
+        List<List<String>> answersList = new ArrayList<>();
+        for (DestinationNode item : quizGraph.get(currentQuestionId)) {
+            answersList.add(new ArrayList<>());
+            answersList.get(answersList.size() - 1).add(answers.get(item.Edge));
         }
         return answersList;
     }
