@@ -40,24 +40,29 @@ public class DatabaseWorker {
 
             Statement stmt = c.createStatement();
             String quiz = "CREATE TABLE IF NOT EXISTS quiz(" +
-                          "id INT PRIMARY KEY NOT NULL, " +
-                          "current_quiz_id INT NOT NULL, " +
-                          "current_question_id INT NOT NULL, " +
-                          "game_active BOOLEAN)";
+                    "id INT PRIMARY KEY NOT NULL, " +
+                    "current_quiz_id INT NOT NULL, " +
+                    "current_question_id INT NOT NULL, " +
+                    "game_active BOOLEAN)";
             stmt.executeUpdate(quiz);
 
             String quizzes = "CREATE TABLE IF NOT EXISTS quizzes(" +
-                             "id SERIAL PRIMARY KEY NOT NULL, " +
-                             "name TEXT NOT NULL, " +
-                             "initial_message TEXT NOT NULL, " +
-                             "share_text TEXT NOT NULL, " +
-                             "questions TEXT NOT NULL, " +
-                             "answers TEXT NOT NULL, " +
-                             "quiz_graph TEXT NOT NULL, " +
-                             "answers_indexes TEXT NOT NULL, " +
-                             "results TEXT NOT NULL)";
+                    "id SERIAL PRIMARY KEY NOT NULL, " +
+                    "name TEXT NOT NULL, " +
+                    "initial_message TEXT NOT NULL, " +
+                    "share_text TEXT NOT NULL, " +
+                    "questions TEXT NOT NULL, " +
+                    "answers TEXT NOT NULL, " +
+                    "quiz_graph TEXT NOT NULL, " +
+                    "answers_indexes TEXT NOT NULL, " +
+                    "results TEXT NOT NULL)";
             stmt.executeUpdate(quizzes);
+
+            String admins = "CREATE TABLE IF NOT EXISTS admins(" +
+                    "id BIGINT PRIMARY KEY NOT NULL)";
+            stmt.executeUpdate(admins);
             stmt.close();
+
         }
         catch (SQLException e) {
             e.printStackTrace();
@@ -65,13 +70,43 @@ public class DatabaseWorker {
         }
     }
 
+    public void addAdmin(long userId) {
+        try {
+            checkConnection();
+
+            if (isAdmin(userId))
+                return;
+            PreparedStatement stmt = c.prepareStatement("INSERT INTO admins VALUES (?);");
+            stmt.setLong(1, userId);
+            stmt.executeUpdate();
+            stmt.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean isAdmin(long userId) {
+        try {
+            checkConnection();
+
+            PreparedStatement stmt = c.prepareStatement("SELECT COUNT(*) FROM admins WHERE id = ?;");
+            stmt.setLong(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next())
+                return rs.getInt("count") > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public void addQuiz(QuizDataSet quiz) {
         try {
             checkConnection();
 
             PreparedStatement stmt = c.prepareStatement("INSERT INTO quizzes(name, initial_message, share_text, " +
-                                                           "questions, answers, quiz_graph, answers_indexes, " +
-                                                           "results) VALUES (?, ?, ?, ?, ?, ?, ?, ?);");
+                    "questions, answers, quiz_graph, answers_indexes, " +
+                    "results) VALUES (?, ?, ?, ?, ?, ?, ?, ?);");
             stmt.setString(1, quiz.name);
             stmt.setString(2, quiz.initialMessage);
             stmt.setString(3, quiz.shareText);
@@ -162,7 +197,7 @@ public class DatabaseWorker {
         try {
             checkConnection();
 
-            PreparedStatement stmt = c.prepareStatement("SELECT count(*) FROM quizzes WHERE id = ?;");
+            PreparedStatement stmt = c.prepareStatement("SELECT COUNT(*) FROM quizzes WHERE id = ?;");
             stmt.setInt(1, quizId);
 
             ResultSet rs = stmt.executeQuery();

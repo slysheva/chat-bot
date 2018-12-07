@@ -1,6 +1,7 @@
 import database.DatabaseWorker;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -10,12 +11,11 @@ class ChatBot {
     private DatabaseWorker db;
 
     protected final String quizNotActive = "Игра ещё не началась. Чтобы посмотреть " +
-                                           "список доступных опросов, напиши команду /start";
+            "список доступных опросов, напиши команду /start";
     protected final String quizEnded = "Игра закончена. Чтобы начать заново, напиши /start";
     protected final String nextQuiz = "Чтобы пройти следующий тест, напиши /start";
     protected final String quizActive = "Игра уже идёт. Чтобы остановить, напиши /stop";
-    protected final String start = "Привет! Чтобы пройти опрос, выбери его из списка. Чтобы добавить новый опрос, " +
-                                   "напиши /add";
+    protected final String start = "Привет! Выберите нужную опцию меню.";
     protected final String addQuiz = "Чтобы добавить новый опрос, пришли мне его в виде текстового файла";
     protected final String quizParseError = "Произошла ошибка во время обработки файла. %s";
     protected final String quizAdded = "Опрос успешно добавлен!";
@@ -23,8 +23,14 @@ class ChatBot {
     protected final String quizzesList = "Вот список доступных опросов:";
     protected final String quizNotFound = "Опрос на найден. Попробуйте пройти другой";
     protected final String invited = "Привет! Давай пройдём опрос, который тебе прислал твой друг.\n\n";
+    protected final String btnAddQuiz = "Добавить опрос";
+    protected final String btnListQuiz = "Список опросов";
+    protected final String btnAddAdmin = "Добавить админа";
 
     protected final Pattern quizSelection = Pattern.compile("[0-9]+:[ A-Za-zА-Яа-я?,.-]+");
+
+    protected final List<String> adminKeyboard = Arrays.asList(btnListQuiz, btnAddQuiz, btnAddAdmin);
+    protected final List<String> userKeyboard = Arrays.asList(btnListQuiz, btnAddQuiz);
 
     ChatBot(String botUsername, DatabaseWorker db) {
         runner = new QuizRunner(botUsername, db);
@@ -33,18 +39,20 @@ class ChatBot {
     }
 
     ChatBotReply answer(String message, int userId) {
-        switch (message.toLowerCase()) {
+        switch (message) {
             case "/start":
             case "старт":
                 if (runner.isActive(userId))
                     return new ChatBotReply(quizActive);
-                return new ChatBotReply(start, getQuizzesList());
+                return new ChatBotReply(start, db.isAdmin(userId) ? adminKeyboard : userKeyboard);
             case "/add":
+            case btnAddQuiz:
                 if (runner.isActive(userId))
                     return new ChatBotReply(quizActive);
                 else
                     return new ChatBotReply(addQuiz);
             case "/list":
+            case btnListQuiz:
                 return new ChatBotReply(quizzesList, getQuizzesList());
             case "/stop":
             case "стоп":
@@ -61,23 +69,19 @@ class ChatBot {
                         return new ChatBotReply(reply.message + '\n' + nextQuiz,
                                 reply.imageUrl, reply.shareText);
                     }
-                }
-                else {
+                } else {
                     Matcher m = quizSelection.matcher(message);
                     if (m.matches()) {
                         int quizId = Integer.parseInt(message.split(":")[0]);
                         return startQuiz(userId, quizId, false);
-                    }
-                    else if (message.startsWith("/start")) {
+                    } else if (message.startsWith("/start")) {
                         try {
                             int quizId = Integer.parseInt(message.split(" ")[1]);
                             return startQuiz(userId, quizId, true);
-                        }
-                        catch (Exception e) {
+                        } catch (Exception e) {
                             return new ChatBotReply(start, getQuizzesList());
                         }
-                    }
-                    else
+                    } else
                         return new ChatBotReply(unrecognized);
                 }
         }
@@ -92,7 +96,7 @@ class ChatBot {
                     '\n' + firstQuestion.message, firstQuestion.keyboardOptions);
         else
             return new ChatBotReply(runner.getInitialMessage(quizId) +
-                '\n' + firstQuestion.message, firstQuestion.keyboardOptions);
+                    '\n' + firstQuestion.message, firstQuestion.keyboardOptions);
     }
 
     ChatBotReply addQuiz(String content) {
@@ -111,7 +115,7 @@ class ChatBot {
     List<String> getQuizzesList() {
         var quizzes = db.getQuizzesList();
         List<String> options = new ArrayList<>();
-        for (var e: quizzes) {
+        for (var e : quizzes) {
             options.add(String.format("%s: %s", e.getFirst(), e.getSecond()));
         }
         return options;
