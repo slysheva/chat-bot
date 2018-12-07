@@ -1,8 +1,6 @@
 import database.DatabaseWorker;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,11 +24,20 @@ class ChatBot {
     protected final String btnAddQuiz = "Добавить опрос";
     protected final String btnListQuiz = "Список опросов";
     protected final String btnAddAdmin = "Добавить админа";
+    protected final String btnCancel = "Отмена";
+    protected final String stateAddAdmin = "add-admin";
+    protected final String addAdmin = "Пришлите id нового администратора.";
+    protected final String incorrectAdminId = "Пожалуйста, укажите корректный id.";
+    protected final String returnToHome = "Возвращаемся в главное меню.";
+    protected final String adminAdded = "Администратор добавлен.\n";
 
     protected final Pattern quizSelection = Pattern.compile("[0-9]+:[ A-Za-zА-Яа-я?,.-]+");
 
     protected final List<String> adminKeyboard = Arrays.asList(btnListQuiz, btnAddQuiz, btnAddAdmin);
     protected final List<String> userKeyboard = Arrays.asList(btnListQuiz, btnAddQuiz);
+    protected final List<String> cancelKeyboard = Collections.singletonList(btnCancel);
+
+    protected HashMap<Long, String> state = new HashMap<>();
 
     ChatBot(String botUsername, DatabaseWorker db) {
         runner = new QuizRunner(botUsername, db);
@@ -38,13 +45,34 @@ class ChatBot {
         this.db.connect();
     }
 
-    ChatBotReply answer(String message, int userId) {
+    ChatBotReply answer(String message, long userId) {
+        if (state.containsKey(userId)) {
+            if (message.equals(btnCancel)) {
+                state.remove(userId);
+                return new ChatBotReply(returnToHome, getKeyboard(userId));
+            }
+            switch (state.get(userId)) {
+                case stateAddAdmin:
+                    try {
+                        long adminId = Long.parseLong(message);
+                        db.addAdmin(adminId);
+                        state.remove(userId);
+                        return new ChatBotReply(adminAdded + returnToHome, getKeyboard(userId));
+                    }
+                    catch (NumberFormatException e) {
+                        return new ChatBotReply(incorrectAdminId, cancelKeyboard);
+                    }
+                default:
+                    state.remove(userId);
+            }
+        }
+
         switch (message) {
             case "/start":
             case "старт":
                 if (runner.isActive(userId))
                     return new ChatBotReply(quizActive);
-                return new ChatBotReply(start, db.isAdmin(userId) ? adminKeyboard : userKeyboard);
+                return new ChatBotReply(start, getKeyboard(userId));
             case "/add":
             case btnAddQuiz:
                 if (runner.isActive(userId))
@@ -60,6 +88,9 @@ class ChatBot {
                     return new ChatBotReply(quizNotActive);
                 runner.stop(userId);
                 return new ChatBotReply(quizEnded);
+            case btnAddAdmin:
+                state.put(userId, stateAddAdmin);
+                return new ChatBotReply(addAdmin, cancelKeyboard);
             default:
                 if (runner.isActive(userId)) {
                     ChatBotReply reply = runner.proceedRequest(message, userId);
@@ -87,7 +118,7 @@ class ChatBot {
         }
     }
 
-    ChatBotReply startQuiz(int userId, int quizId, boolean fromInvite) {
+    ChatBotReply startQuiz(long userId, int quizId, boolean fromInvite) {
         if (!runner.start(userId, quizId))
             return new ChatBotReply(quizNotFound, getQuizzesList());
         ChatBotReply firstQuestion = runner.proceedRequest("", userId);
@@ -119,5 +150,9 @@ class ChatBot {
             options.add(String.format("%s: %s", e.getFirst(), e.getSecond()));
         }
         return options;
+    }
+
+    List<String> getKeyboard(long userId) {
+        return db.isAdmin(userId) ? adminKeyboard : userKeyboard;
     }
 }

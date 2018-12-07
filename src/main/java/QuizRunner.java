@@ -18,12 +18,12 @@ public class QuizRunner implements IGame {
         db.connect();
     }
 
-    private Pair<Integer, Integer> getGameData(int userId) {
+    private Pair<Integer, Integer> getGameData(long userId) {
         return db.getCurrentQuizState(userId);
     }
 
     @Override
-    public ChatBotReply proceedRequest(String request, int userId) {
+    public ChatBotReply proceedRequest(String request, long userId) {
         Pair<Integer, Integer> gameData = getGameData(userId);
         int currentQuizId = gameData.getFirst();
         int currentQuestionId = gameData.getSecond();
@@ -52,7 +52,7 @@ public class QuizRunner implements IGame {
     }
 
     @Override
-    public boolean start(int userId, int quizId) {
+    public boolean start(long userId, int quizId) {
         if (quizNotExists(quizId)) {
             return false;
         }
@@ -72,12 +72,12 @@ public class QuizRunner implements IGame {
     }
 
     @Override
-    public void stop(int userId) {
+    public void stop(long userId) {
         db.markGameInactive(userId);
     }
 
     @Override
-    public boolean isActive(int userId) {
+    public boolean isActive(long userId) {
         return db.isGameActive(userId);
     }
 }
