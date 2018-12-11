@@ -87,8 +87,7 @@ public class WinxQuiz implements IGame {
 			var character = characters[Ints.indexOf(gameData.answerStatistics,
 					Ints.max(gameData.answerStatistics))];
 			return new ChatBotReply(String.format("Всё понятно. Ты %s",
-					character.getFirst()),
-                    null,
+					character.getFirst()),                    null,
                     character.getSecond(),
                     String.format("фея %s", character.getFirst()));
 		}
