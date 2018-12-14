@@ -32,7 +32,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         super(botOptions);
         var tests = new ArrayList<Pair<String, Class<? extends IGame>>>();
         tests.add(new Pair<>("winx", WinxQuiz.class));
-        tests.add(new Pair<>("pixie.yml", PixieQuiz.class));
         chatBot = new ChatBot(new GameFactory(), tests);
         try {
             BOT_USERNAME = System.getenv("BOT_USERNAME");

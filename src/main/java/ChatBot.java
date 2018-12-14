@@ -17,7 +17,6 @@ class ChatBot {
     }
 
     ChatBotReply answer(String message, int userId) {
-            for (cmd : )
-        }
+        ChatBotReply chatBotReply = new ChatBotReply("", new ArrayList<String>()); return chatBotReply;
     }
 }
